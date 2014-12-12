@@ -1,3 +1,4 @@
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "mpi.h"
@@ -12,9 +13,9 @@
 #define MO 1000000
 
 int interval(int x, int n){
-
   
 }
+
 
 void comm(MPI_Comm inter)
 {
