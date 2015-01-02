@@ -14,20 +14,17 @@
 // main function calling mpi functions
 int main(int argc, char **argv)
 {
-  int myrank, size, p = -1, c, t = -1, r = -1;
+
   MPI_Comm inter;
   MPI_Status status;
-
-  MPI_Init(NULL, NULL);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
   double initialTime = 0.0;
+  int myrank, size, p = -1, t = -1, r = -1;
+  char c;
   char *a = NULL, *m = NULL;
   struct timeval t1, t2;
   unsigned long time_difference = 0;
-  extern char * optarg; 
-  extern int optind, opterr;
+  /* extern char * optarg;  */
+  /* extern int optind, opterr; */
 
   printf("Welcome to the World of the Mighty Password\n");
 
@@ -54,26 +51,23 @@ int main(int argc, char **argv)
     }
   }
   // Just in case
-  if (size != 1 || p == -1 || t == -1 || r == -1){
-    fprintf(stderr, "Err: negative arguments\n");
-    MPI_Finalize();
+  if (a == NULL || m == NULL || p < 1 || t < 1 || r < 1){
+    fprintf(stderr, "Error in args, exiting now.\n");
     return 1;
   }
-  MPI_Comm_spawn("slave", MPI_ARGV_NULL, p-1, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &inter, MPI_ERRCODES_IGNORE);
 
-  printf("Created %d slaves\n", p-1);
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  // Broadcast spawn parameters
-  MPI_Bcast(&t,1,MPI_INT,MPI_ROOT,inter);
-  int size_a = strlen(a) + 1;
-  MPI_Bcast(&size_a,1,MPI_INT,MPI_ROOT,inter);
-  MPI_Bcast(a,size_a,MPI_CHAR,MPI_ROOT,inter);
-  MPI_Bcast(&r,1,MPI_INT,MPI_ROOT,inter);
-  int size_m = strlen(m) + 1;
-  MPI_Bcast(&size_m,1,MPI_INT,MPI_ROOT,inter);
-  MPI_Bcast(m,size_m,MPI_CHAR,MPI_ROOT,inter);
+  MPI_Comm_spawn("slave", argv+1, p, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &inter, MPI_ERRCODES_IGNORE);
 
+  printf("Created %d slaves\n", p);
+
+  // not usefull if (size == p) isn't tested
   MPI_Comm_size(inter, &size);
+
+  //test
   int buf;
   MPI_Recv(&buf,1,MPI_INT,MPI_ANY_SOURCE,MPI_ANY_TAG,inter,&status);
   printf("%d\n",buf );
