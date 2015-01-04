@@ -16,7 +16,7 @@
 MPI_Datatype task_type;
 struct task_list todo_list;
 sem_t computers;
-char end = 0;
+char end = 0, found = 0;
 char finishing = 0;
 char asking = 0;
 char * pwd_found = NULL;
@@ -52,7 +52,7 @@ inline char hash_verification(char* word){
 }
 
 void thread_computation(){
-  int i;
+  int i, k, word_size = 0;
   while(1){
     sem_wait(&computers);
     struct task * task_to_compute;
@@ -64,14 +64,22 @@ void thread_computation(){
 	--todo_list.num_children;
       }
       // task compute
-      for (int i; i < task_to_compute->nb_test; ++i){
+      for (i = 0; i < task_to_compute->nb_test; ++i){
 	if (hash_verification(task_to_compute->start_word) == 1){
 	  pwd_found = malloc(sizeof(char)*(r+1));
-	  memcpy(pwd_found, task_to_compute->start_word, r+1);
+	  for (k = 0; k <= r; ++k){
+	    if (task_to_compute->start_word[k] != 0)
+	      ++word_size;
+	  }
+	  for (k = 0; k < word_size; ++k){
+	    pwd_found[k] = org[task_to_compute->start_word[word_size-k-1]];
+	  }
+	  pwd_found[k] = '\0';
 	}
+	next_word(task_to_compute->start_word);
       }
-      free(task_to_compute->start_word);
-      free(task_to_compute);
+      //free(task_to_compute->start_word);
+      //free(task_to_compute);
     } else { 
       if(end == 1)
 	++finishing;
@@ -82,14 +90,16 @@ void thread_computation(){
 }
 
 void thread_comm(MPI_Comm inter){
+  int rank;
+  MPI_Comm_rank(inter,&rank);
+  printf("Slave %d starts comm\n", rank);
   while(1){
     int flag;
     int k;
     char buffer;
-    struct task * task_to_add;
+    struct task * task_to_deal_with;
     MPI_Status status_p;
     MPI_Iprobe(0, MPI_ANY_TAG, inter, &flag, &status_p);
-    MPI_Request request;    
     if (flag) {
       switch(status_p.MPI_TAG) {
 	//Message asking for another tile. Here, the content of the message is an int corresponding to the original source of the message.
@@ -97,10 +107,9 @@ void thread_comm(MPI_Comm inter){
 #pragma omp critical
 	{
 	  while(!list_empty(&(todo_list.children))){
-	    struct task * task_to_delete;
-	    task_to_delete = list_pop(&todo_list.children, struct task, list);
-	    free(task_to_delete->start_word);
-	    free(task_to_delete);
+	    task_to_deal_with = list_pop(&todo_list.children, struct task, list);
+	    //free(task_to_deal_with->start_word);
+	    //free(task_to_deal_with);
 	    --todo_list.num_children;    
 	  }
 	}
@@ -108,6 +117,7 @@ void thread_comm(MPI_Comm inter){
 	for(k = 0; k<t; k++)
 	  sem_post(&computers);
 	MPI_Recv(&buffer, 1, MPI_CHAR, 0, END, inter, MPI_STATUS_IGNORE);
+	printf("Slave %d received END from master\n", rank);
 	return;
 	break;
       case FINISH :
@@ -115,31 +125,31 @@ void thread_comm(MPI_Comm inter){
 	for(k = 0; k<t; k++)
 	  sem_post(&computers);
 	MPI_Recv(&buffer, 1, MPI_CHAR, 0, FINISH, inter, MPI_STATUS_IGNORE);
+	printf("Slave %d received FINISH from master\n", rank);
 	break;
       case INTER :
-	task_to_add = malloc(sizeof(struct task));
-	task_to_add->start_word = malloc(sizeof(char)*(r+1));
-	MPI_Recv(&task_to_add, 1, task_type, 0, INTER, inter, MPI_STATUS_IGNORE);
+	task_to_deal_with = malloc(sizeof(struct task));
+	task_to_deal_with->start_word = malloc(sizeof(char)*(r+1));
+	MPI_Recv(task_to_deal_with, 1, task_type, 0, INTER, inter, MPI_STATUS_IGNORE);
 	#pragma omp critical
 	{
-	  list_add(&todo_list.children, &task_to_add->list);
+	  list_add(&todo_list.children, &task_to_deal_with->list);
 	  ++todo_list.num_children;
 	  sem_post(&computers);
 	}
 	asking = 0;
+	printf("Slave %d received INTER from master\n", rank);
 	break;
       }
     } else {     // The process didn't receive anything, so you check if the process need other tasks
-      if (pwd_found != NULL) {
+      if (pwd_found != NULL && found == 0) {
 	struct task res;
 	res.start_word = pwd_found;
 	// Send an INTER message
-	MPI_Isend(&res, 1, task_type, 0, INTER, inter, &request);
+	MPI_Send(&res, 1, task_type, 0, INTER, inter);
 	// wake up all threads to end
-	end = 1;
-	for(k = 0; k<t; k++)
-	  sem_post(&computers);
-	MPI_Request_free(&request);
+	found = 1;
+	//free(pwd_found);
       } else if (asking == 0 && todo_list.num_children < t){
 	// we ask for a new interval
 	MPI_Send(&buffer, 1, MPI_CHAR, 0, ASK, inter);
@@ -150,7 +160,6 @@ void thread_comm(MPI_Comm inter){
 	return;
       }
     } 
-    //No call to MPI_Wait() is needed, since we don't need to wait for the message to be sent to continue.
   }
 }
 
@@ -184,8 +193,9 @@ int main(int argc, char **argv){
     }
   }
   
-  printf("Read args: %d %s %d %s\n",t,a,r,m );
+  //  printf("Read args: %d %s %d %s\n",t,a,r,m );
 
+  list_head_init(&todo_list.children);
   todo_list.num_children = 0;
 
   MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &provided);
@@ -221,9 +231,9 @@ int main(int argc, char **argv){
   }
 
   org = malloc(sizeof(char)*(nb_letters));
-  for (i = 0, start = 0; i < 256; i++)
+  for (i = 0; i < 256; i++)
     if (translation[i] != 0)
-      org[++start] = i;
+      org[i] = translation[i];
 
   int pwd_len = strlen(m);
   pwd_given = malloc(sizeof(char)*(pwd_len+1));
@@ -236,15 +246,12 @@ int main(int argc, char **argv){
   #pragma omp parallel
   {
     n = omp_get_thread_num();
-    printf("##%d #%d\n", myrank, n);
-    if (n = 0)
+    if (n == 0)
       thread_comm(inter);
     else
       thread_computation();
   }
 
-  if (pwd_found != NULL)
-    free (pwd_found);
   sem_destroy(&computers);
   MPI_Finalize();
   return 0;

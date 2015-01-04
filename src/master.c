@@ -19,10 +19,11 @@ char * pwd_found = NULL;
 
 
 inline int power(int a, int pow){
-  int res = 1;
-  while (pow-- != 0){
+  int tmp = pow, res = 1;
+  while (tmp-- > 0){
     res *= a;
   }
+  return res;
 }
 
 inline char * next_word(char *word, int offset){
@@ -49,12 +50,12 @@ void thread_comm(MPI_Comm inter){
     int k;
     char buffer;
     MPI_Status status_p;
-    MPI_Iprobe(0, MPI_ANY_TAG, inter, &flag, &status_p);
-    MPI_Request request;    
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, inter, &flag, &status_p);
     if (flag) {
       switch(status_p.MPI_TAG) {
 	//Message asking for another tile. Here, the content of the message is an int corresponding to the original source of the message.
       case ASK :
+	MPI_Recv(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, ASK, inter, MPI_STATUS_IGNORE);
 	if (pwd_found != NULL){
 	  // The process send END message, because we have the password
 	  MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, END, inter);
@@ -64,35 +65,36 @@ void thread_comm(MPI_Comm inter){
 	  MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, FINISH, inter);
 	} else {
 	  task_to_deal_with = list_pop(&todo_list.children, struct task, list);
-	  MPI_Isend(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter, &request);
-	  free(task_to_deal_with->start_word);
-	  free(task_to_deal_with);
+	  MPI_Send(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter);
+	  //free(task_to_deal_with->start_word);
+	  //free(task_to_deal_with);
 	  --todo_list.num_children;
-	  MPI_Request_free(&request);
 	}
-	MPI_Recv(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, ASK, inter, MPI_STATUS_IGNORE);	
+	printf("Master received ASK from slave %d\n", status_p.MPI_SOURCE);
 	break;
       case INTER :
 	++finishing;
 	MPI_Recv(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter, MPI_STATUS_IGNORE);
+	MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, END, inter);
 	pwd_found = task_to_deal_with->start_word;
-	free(task_to_deal_with);
+	//free(task_to_deal_with);
 	while(!list_empty(&(todo_list.children))){
 	  task_to_deal_with = list_pop(&todo_list.children, struct task, list);
-	  free(task_to_deal_with->start_word);
-	  free(task_to_deal_with);
+	  //free(task_to_deal_with->start_word);
+	  //free(task_to_deal_with);
 	  --todo_list.num_children;    
 	}
+	printf("Master received INTER from slave %d\n", status_p.MPI_SOURCE);
 	break;
       case NOTHING :
 	++finishing;
 	MPI_Recv(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, NOTHING, inter, MPI_STATUS_IGNORE);
+	printf("Master received NOTHING from slave %d\n", status_p.MPI_SOURCE);
 	break;
       }
     } else if (finishing == p){
       return;
     }
-    //No call to MPI_Wait() is needed, since we don't need to wait for the message to be sent to continue.
   }
 }
 
@@ -165,6 +167,7 @@ int main(int argc, char **argv){
     }
   }
 
+  list_head_init(&todo_list.children);
   todo_list.num_children = 0;
 
   MPI_Init(&argc, &argv);
@@ -179,6 +182,7 @@ int main(int argc, char **argv){
 
   printf("Created %d slaves\n", p);
 
+
   int a_of_b[2] = {1,(1+r)};
   MPI_Aint a_of_d[2];
   MPI_Datatype a_of_t[2] = {MPI_INT,MPI_CHAR};
@@ -190,12 +194,33 @@ int main(int argc, char **argv){
   MPI_Type_create_struct(2, a_of_b, a_of_d, a_of_t,&task_type);
   MPI_Type_commit(&task_type); // this type can represent an incoming task (besides start word) or the pwd found
 
-
   // create all task
-  // (should call next_word)
+  int nb_possibilites = power(nb_letters, r);
+  int index = 0;
+  char * start_word = malloc(sizeof(char)*(r+1));
+  memset(start_word, 0, (r+1));
+  start_word[0] = 1;
+  int nb_task = (nb_possibilites + MAX_INTER - 1) / MAX_INTER;
+  for (i = 0; i < nb_task; ++i){
+    struct task * task_to_add = malloc(sizeof(struct task));
+    task_to_add->start_word = start_word;
+    task_to_add->nb_test = (MAX_INTER < (nb_possibilites - index)) ? MAX_INTER : (nb_possibilites - index);
+    index += MAX_INTER;
+    list_add(&todo_list.children, &task_to_add->list);
+    ++todo_list.num_children;
+    start_word = next_word(start_word, MAX_INTER);
+  }
 
   // comm thread
+  printf("Interval generation ended, computation begin now.\n");
   thread_comm(inter);
+
+  if (pwd_found != NULL) {
+    printf("Pwd : %s\n", pwd_found);
+    //free(pwd_found);
+  } else {
+    printf("Pwd not found\n");
+  }
 
   time = MPI_Wtime() - time;
   printf("Time : %lf (s)\n", time);
