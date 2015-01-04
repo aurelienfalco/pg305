@@ -3,14 +3,14 @@ EX = mpiexec
 EXEC = master slave
 # SRC = master.c slave.c
 # OBJ=$(SRC:.c=.o)
-CFLAGS = -fopenmp -std=c99 -O2
+CFLAGS = -fopenmp -std=c99 -O2 -Iincludes
 stat=diff
 n=1
 p=4
 t=5
 a=abcdefghijklmnopqrstuvwxyz
 r=3
-m=lol
+m=abc
 
 all: $(EXEC)
 
@@ -23,11 +23,11 @@ qsub: $(EXEC)
 	@sleep 3; 
 	@cat res.*
 
-%: %.o
-	$(CC) $(CFLAGS) $^ -o $@ -lm
+%: src/%.o
+	$(CC) $(CFLAGS) $^ -o $@
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $^ -lm
+src/%.o: src/%.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 clean:
 	rm -rf *.o $(EXEC) *~
