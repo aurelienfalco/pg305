@@ -79,7 +79,6 @@ void thread_computation(){
       sem_wait(&computers);
     }
   }
-
 }
 
 void thread_comm(MPI_Comm inter){
@@ -134,7 +133,6 @@ void thread_comm(MPI_Comm inter){
       if (pwd_found != NULL) {
 	struct task res;
 	res.start_word = pwd_found;
-	res.nb_test = 0;
 	// Send an INTER message
 	MPI_Isend(&res, 1, task_type, 0, INTER, inter, &request);
 	// wake up all threads to end
@@ -144,18 +142,16 @@ void thread_comm(MPI_Comm inter){
 	MPI_Request_free(&request);
       } else if (asking == 0 && todo_list.num_children < t){
 	// we ask for a new interval
-	char buffer;
 	MPI_Send(&buffer, 1, MPI_CHAR, 0, ASK, inter);
 	asking = 1;
       } else if (finishing == t) {
-	// we ask have nothing
-	char buffer;
+	// we have nothing
 	MPI_Send(&buffer, 1, MPI_CHAR, 0, NOTHING, inter);
 	return;
       }
     } 
+    //No call to MPI_Wait() is needed, since we don't need to wait for the message to be sent to continue.
   }
-  //No call to MPI_Wait() is needed, since we don't need to wait for the message to be sent to continue.
 }
 
 
@@ -189,6 +185,8 @@ int main(int argc, char **argv){
   }
   
   printf("Read args: %d %s %d %s\n",t,a,r,m );
+
+  todo_list.num_children = 0;
 
   MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &provided);
   MPI_Comm_get_parent(&inter);

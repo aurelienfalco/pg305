@@ -15,6 +15,7 @@ MPI_Datatype task_type;
 struct task_list todo_list;
 char nb_letters = 1;
 int p = -1, t = -1, r = -1;
+char * pwd_found = NULL;
 
 
 inline int power(int a, int pow){
@@ -24,7 +25,7 @@ inline int power(int a, int pow){
   }
 }
 
-inline char *next_word(char *word, int offset){
+inline char * next_word(char *word, int offset){
   int remain = offset, i = r-1, tmp, pow;
   char *res = malloc(sizeof(char)*(r+1));
   memset(res, 0, r+1);
@@ -37,8 +38,63 @@ inline char *next_word(char *word, int offset){
     --r;
     remain -= tmp*pow;
   }
+  return res;
 }
 
+void thread_comm(MPI_Comm inter){
+  int finishing = 0;
+  while(1){
+    struct task * task_to_deal_with;
+    int flag;
+    int k;
+    char buffer;
+    MPI_Status status_p;
+    MPI_Iprobe(0, MPI_ANY_TAG, inter, &flag, &status_p);
+    MPI_Request request;    
+    if (flag) {
+      switch(status_p.MPI_TAG) {
+	//Message asking for another tile. Here, the content of the message is an int corresponding to the original source of the message.
+      case ASK :
+	if (pwd_found != NULL){
+	  // The process send END message, because we have the password
+	  MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, END, inter);
+	  ++finishing;
+	} else if (todo_list.num_children == 0){     
+	  // The process send FINISH message, because we have any task left
+	  MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, FINISH, inter);
+	} else {
+	  task_to_deal_with = list_pop(&todo_list.children, struct task, list);
+	  MPI_Isend(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter, &request);
+	  free(task_to_deal_with->start_word);
+	  free(task_to_deal_with);
+	  --todo_list.num_children;
+	  MPI_Request_free(&request);
+	}
+	MPI_Recv(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, ASK, inter, MPI_STATUS_IGNORE);	
+	break;
+      case INTER :
+	++finishing;
+	MPI_Recv(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter, MPI_STATUS_IGNORE);
+	pwd_found = task_to_deal_with->start_word;
+	free(task_to_deal_with);
+	while(!list_empty(&(todo_list.children))){
+	  task_to_deal_with = list_pop(&todo_list.children, struct task, list);
+	  free(task_to_deal_with->start_word);
+	  free(task_to_deal_with);
+	  --todo_list.num_children;    
+	}
+	break;
+      case NOTHING :
+	++finishing;
+	MPI_Recv(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, NOTHING, inter, MPI_STATUS_IGNORE);
+	break;
+      }
+    } else if (finishing == p){
+      return;
+    }
+    //No call to MPI_Wait() is needed, since we don't need to wait for the message to be sent to continue.
+  }
+}
 
 // main function calling mpi functions
 int main(int argc, char **argv){
@@ -109,6 +165,7 @@ int main(int argc, char **argv){
     }
   }
 
+  todo_list.num_children = 0;
 
   MPI_Init(&argc, &argv);
   time = MPI_Wtime();
@@ -135,8 +192,11 @@ int main(int argc, char **argv){
 
 
   // create all task
-  // call to the comm thread
-  
+  // (should call next_word)
+
+  // comm thread
+  thread_comm(inter);
+
   time = MPI_Wtime() - time;
   printf("Time : %lf (s)\n", time);
   MPI_Finalize();
