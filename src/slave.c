@@ -46,7 +46,7 @@ char hash_verification(char * word){
   while ((word[i] !=  0) && (word[i] == pwd_given[i])){
     ++i;
   }
-  if(pwd_given[i] == 0){
+  if((pwd_given[i] == 0) && (word[i] == 0)){
     return 1;
   }
   return 0;
@@ -81,9 +81,10 @@ void thread_computation(){
       }
       free(task_to_compute);
     } else { 
-      if(end == 1)
+      if(end == 1){
 	++finishing;
-	return;
+        return;
+      }
       sem_wait(&computers);
     }
   }

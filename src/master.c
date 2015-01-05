@@ -34,8 +34,10 @@ char * next_word(char *word, int offset){
     pow = power(nb_letters-1, i);
     tmp  = remain / pow;
     if (tmp > 0){
-      res[i] = word[i] + tmp;
+      res[i] = (word[i] + tmp) % nb_letters;
     }
+    if (res[i] == 0)
+      res[i] = 1;
     --i;
     remain -= tmp*pow;
   }
@@ -204,11 +206,6 @@ int main(int argc, char **argv){
   start_word[0] = 1;
   int nb_task = (nb_possibilites + MAX_INTER - 1) / MAX_INTER;
   for (i = 0; i < nb_task; ++i){
-    int k;
-    printf("start word : ");
-    for (k = 0; k < r ; k++)
-      printf("%d ", (unsigned int) start_word[k]);
-    printf("\n");
     struct task * task_to_add = malloc(sizeof(struct task));
     memcpy(task_to_add->start_word,start_word,sizeof(char)*(r+1));
     task_to_add->nb_test = (MAX_INTER < (nb_possibilites - index)) ? MAX_INTER : (nb_possibilites - index);
