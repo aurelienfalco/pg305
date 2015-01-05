@@ -26,10 +26,10 @@ char * org = NULL;
 int p, t, r, n;
 
 
-inline void next_word(char* word){
+void next_word(char* word){
   int i = 0;
   char remain = 1;
-  while (remain == 1){
+  while ((remain == 1) && (i < r)){
     word[i] = (word[i]+1)%nb_letters;
     if (word[i] != 0){
       remain = 0;
@@ -41,13 +41,14 @@ inline void next_word(char* word){
   return;
 }
 
-inline char hash_verification(char* word){
+char hash_verification(char * word){
   int i = 0;
   while ((word[i] !=  0) && (word[i] == pwd_given[i])){
     ++i;
   }
-  if(pwd_given[i] == 0)
+  if(pwd_given[i] == 0){
     return 1;
+  }
   return 0;
 }
 
@@ -78,8 +79,7 @@ void thread_computation(){
 	}
 	next_word(task_to_compute->start_word);
       }
-      //free(task_to_compute->start_word);
-      //free(task_to_compute);
+      free(task_to_compute);
     } else { 
       if(end == 1)
 	++finishing;
@@ -108,8 +108,7 @@ void thread_comm(MPI_Comm inter){
 	{
 	  while(!list_empty(&(todo_list.children))){
 	    task_to_deal_with = list_pop(&todo_list.children, struct task, list);
-	    //free(task_to_deal_with->start_word);
-	    //free(task_to_deal_with);
+	    free(task_to_deal_with);
 	    --todo_list.num_children;    
 	  }
 	}
@@ -129,7 +128,6 @@ void thread_comm(MPI_Comm inter){
 	break;
       case INTER :
 	task_to_deal_with = malloc(sizeof(struct task));
-	task_to_deal_with->start_word = malloc(sizeof(char)*(r+1));
 	MPI_Recv(task_to_deal_with, 1, task_type, 0, INTER, inter, MPI_STATUS_IGNORE);
 	#pragma omp critical
 	{
@@ -144,12 +142,11 @@ void thread_comm(MPI_Comm inter){
     } else {     // The process didn't receive anything, so you check if the process need other tasks
       if (pwd_found != NULL && found == 0) {
 	struct task res;
-	res.start_word = pwd_found;
+	memcpy(res.start_word, pwd_found, sizeof(char)*(r+1));
 	// Send an INTER message
 	MPI_Send(&res, 1, task_type, 0, INTER, inter);
 	// wake up all threads to end
 	found = 1;
-	//free(pwd_found);
       } else if (asking == 0 && todo_list.num_children < t){
 	// we ask for a new interval
 	MPI_Send(&buffer, 1, MPI_CHAR, 0, ASK, inter);
@@ -214,15 +211,11 @@ int main(int argc, char **argv){
 
   // determine alphabet nb_letters
   int alphabet_length = strlen(a);
-  char start = 0;
-  char occ[256];
-  char translation[256];
-  memset(translation, 0, 256);
-  memset(occ, 0, 256);
+  char occ[256] = {0};
+  char translation[256] = {0};
   for (i = 0; i < alphabet_length; ++i){
     ++occ[a[i]];
-    translation[a[i]] = ++start;
-    
+    translation[a[i]] = i+1;
   }  
 
   for (i = 0; i < 256; ++i){
@@ -233,7 +226,7 @@ int main(int argc, char **argv){
   org = malloc(sizeof(char)*(nb_letters));
   for (i = 0; i < 256; i++)
     if (translation[i] != 0)
-      org[i] = translation[i];
+      org[translation[i]] = i;
 
   int pwd_len = strlen(m);
   pwd_given = malloc(sizeof(char)*(pwd_len+1));
@@ -241,7 +234,7 @@ int main(int argc, char **argv){
     pwd_given[pwd_len  - 1 - i] = translation[m[i]];
   }
   pwd_given[pwd_len] = 0;
-
+  
   omp_set_num_threads(t+1);
   #pragma omp parallel
   {
@@ -252,6 +245,9 @@ int main(int argc, char **argv){
       thread_computation();
   }
 
+  if (pwd_found != NULL)
+    free(pwd_found);
+  free(org);
   sem_destroy(&computers);
   MPI_Finalize();
   return 0;

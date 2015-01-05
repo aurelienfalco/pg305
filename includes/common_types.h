@@ -3,7 +3,6 @@
 
 #include "list.h"
 
-#define MIN_INTER 100
 #define MAX_INTER 1000
 #define MAX_CHARS 100
 
@@ -18,7 +17,7 @@ struct task_list{
 struct task{
   struct list_node list;
   int nb_test;
-  char* start_word;
+  char start_word[MAX_CHARS];
 };
 
 

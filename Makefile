@@ -3,14 +3,14 @@ EX = mpiexec
 EXEC = master slave
 # SRC = master.c slave.c
 # OBJ=$(SRC:.c=.o)
-CFLAGS = -fopenmp -std=c99 -O2 -Iincludes -g
+CFLAGS = -fopenmp -std=c99 -O0 -Iincludes -ggdb
 stat=diff
 n=1
 p=4
 t=5
 a=abcdefghijklmnopqrstuvwxyz
-r=1
-m=b
+r=3
+m=bu
 
 all: $(EXEC)
 

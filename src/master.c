@@ -18,7 +18,7 @@ int p = -1, t = -1, r = -1;
 char * pwd_found = NULL;
 
 
-inline int power(int a, int pow){
+int power(int a, int pow){
   int tmp = pow, res = 1;
   while (tmp-- > 0){
     res *= a;
@@ -26,19 +26,20 @@ inline int power(int a, int pow){
   return res;
 }
 
-inline char * next_word(char *word, int offset){
+char * next_word(char *word, int offset){
   int remain = offset, i = r-1, tmp, pow;
   char *res = malloc(sizeof(char)*(r+1));
-  memset(res, 0, r+1);
+  memset(res, 0, sizeof(char)*(r+1));
   while (remain != 0){
     pow = power(nb_letters-1, i);
     tmp  = remain / pow;
     if (tmp > 0){
-      res[r] = word[r] + tmp;
+      res[i] = word[i] + tmp;
     }
-    --r;
+    --i;
     remain -= tmp*pow;
   }
+  free(word);
   return res;
 }
 
@@ -66,22 +67,22 @@ void thread_comm(MPI_Comm inter){
 	} else {
 	  task_to_deal_with = list_pop(&todo_list.children, struct task, list);
 	  MPI_Send(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter);
-	  //free(task_to_deal_with->start_word);
-	  //free(task_to_deal_with);
+	  free(task_to_deal_with);
 	  --todo_list.num_children;
 	}
 	printf("Master received ASK from slave %d\n", status_p.MPI_SOURCE);
 	break;
       case INTER :
 	++finishing;
+	task_to_deal_with = malloc(sizeof(struct task));
 	MPI_Recv(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter, MPI_STATUS_IGNORE);
 	MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, END, inter);
-	pwd_found = task_to_deal_with->start_word;
-	//free(task_to_deal_with);
+	pwd_found = malloc(sizeof(char)*(r+1));
+	memcpy(pwd_found, task_to_deal_with->start_word, sizeof(char)*(r+1));
+	free(task_to_deal_with);
 	while(!list_empty(&(todo_list.children))){
 	  task_to_deal_with = list_pop(&todo_list.children, struct task, list);
-	  //free(task_to_deal_with->start_word);
-	  //free(task_to_deal_with);
+	  free(task_to_deal_with);
 	  --todo_list.num_children;    
 	}
 	printf("Master received INTER from slave %d\n", status_p.MPI_SOURCE);
@@ -154,11 +155,6 @@ int main(int argc, char **argv){
       ++nb_letters;
   }
     
-  if (alphabet_length > MAX_CHARS){
-      fprintf(stderr, "Error: alphabet is out of range (> max #chars).\n");
-      return 1;    
-  }
-
   int pwd_length = strlen(m);
   for (i = 0; i < pwd_length; ++i) {
     if (occ[m[i]] == 0){
@@ -166,6 +162,12 @@ int main(int argc, char **argv){
       return 1;
     }
   }
+
+  if ((nb_letters >= 256) || (r >= MAX_CHARS) || (pwd_length >= MAX_CHARS)){
+      fprintf(stderr, "Error: out of range (> max #chars).\n");
+      return 1;    
+  }
+
 
   list_head_init(&todo_list.children);
   todo_list.num_children = 0;
@@ -202,14 +204,20 @@ int main(int argc, char **argv){
   start_word[0] = 1;
   int nb_task = (nb_possibilites + MAX_INTER - 1) / MAX_INTER;
   for (i = 0; i < nb_task; ++i){
+    int k;
+    printf("start word : ");
+    for (k = 0; k < r ; k++)
+      printf("%d ", (unsigned int) start_word[k]);
+    printf("\n");
     struct task * task_to_add = malloc(sizeof(struct task));
-    task_to_add->start_word = start_word;
+    memcpy(task_to_add->start_word,start_word,sizeof(char)*(r+1));
     task_to_add->nb_test = (MAX_INTER < (nb_possibilites - index)) ? MAX_INTER : (nb_possibilites - index);
     index += MAX_INTER;
     list_add(&todo_list.children, &task_to_add->list);
     ++todo_list.num_children;
     start_word = next_word(start_word, MAX_INTER);
   }
+  free(start_word);
 
   // comm thread
   printf("Interval generation ended, computation begin now.\n");
@@ -217,7 +225,7 @@ int main(int argc, char **argv){
 
   if (pwd_found != NULL) {
     printf("Pwd : %s\n", pwd_found);
-    //free(pwd_found);
+    free(pwd_found);
   } else {
     printf("Pwd not found\n");
   }
