@@ -27,9 +27,12 @@ int power(int a, int pow){
 }
 
 char * next_word(char *word, int offset){
-  int remain = offset, i = r-1, tmp, pow;
+  int remain = offset, i, tmp, pow, size = 0;
   char *res = malloc(sizeof(char)*(r+1));
   memset(res, 0, sizeof(char)*(r+1));
+  while (word[size] != 0)
+    ++size;
+  i = size - 1;
   while (remain != 0){
     pow = power(nb_letters-1, i);
     tmp  = remain / pow;
@@ -62,6 +65,7 @@ void thread_comm(MPI_Comm inter){
 	if (pwd_found != NULL){
 	  // The process send END message, because we have the password
 	  MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, END, inter);
+	  // printf("finishing++ pwd\n");
 	  ++finishing;
 	} else if (todo_list.num_children == 0){     
 	  // The process send FINISH message, because we have any task left
@@ -72,9 +76,10 @@ void thread_comm(MPI_Comm inter){
 	  free(task_to_deal_with);
 	  --todo_list.num_children;
 	}
-	printf("Master received ASK from slave %d\n", status_p.MPI_SOURCE);
+	// printf("Master received ASK from slave %d\n", status_p.MPI_SOURCE);
 	break;
       case INTER :
+	// printf("finishing++ inter\n");
 	++finishing;
 	task_to_deal_with = malloc(sizeof(struct task));
 	MPI_Recv(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter, MPI_STATUS_IGNORE);
@@ -87,15 +92,17 @@ void thread_comm(MPI_Comm inter){
 	  free(task_to_deal_with);
 	  --todo_list.num_children;    
 	}
-	printf("Master received INTER from slave %d\n", status_p.MPI_SOURCE);
+	// printf("Master received INTER from slave %d\n", status_p.MPI_SOURCE);
 	break;
       case NOTHING :
 	++finishing;
+	// printf("finishing++ not\n");
 	MPI_Recv(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, NOTHING, inter, MPI_STATUS_IGNORE);
-	printf("Master received NOTHING from slave %d\n", status_p.MPI_SOURCE);
+	// printf("Master received NOTHING from slave %d\n", status_p.MPI_SOURCE);
 	break;
       }
     } else if (finishing == p){
+      // printf("Finishing : %d, p : %d\n", finishing, p);
       return;
     }
   }
@@ -150,8 +157,8 @@ int main(int argc, char **argv){
   
   for (i = 0; i < 256; ++i){
     if (occ[i] > 1){
-      occ[i] = 1;
-      fprintf(stderr, "Warning: alphabet contains some letters twice or more.\n");
+      fprintf(stderr, "Error: alphabet contains some letters twice or more.\n");
+      return 1;
     }
     if (occ[i] == 1)
       ++nb_letters;
@@ -199,10 +206,13 @@ int main(int argc, char **argv){
   MPI_Type_commit(&task_type); // this type can represent an incoming task (besides start word) or the pwd found
 
   // create all task
-  int nb_possibilites = power(nb_letters, r);
+  int nb_possibilites = 0;
+  for (i = 1; i<=r;i++){
+    nb_possibilites += power(nb_letters - 1, i);
+  }
   int index = 0;
   char * start_word = malloc(sizeof(char)*(r+1));
-  memset(start_word, 0, (r+1));
+  memset(start_word, 0, sizeof(char)*(r+1));
   start_word[0] = 1;
   int nb_task = (nb_possibilites + MAX_INTER - 1) / MAX_INTER;
   for (i = 0; i < nb_task; ++i){
@@ -212,6 +222,11 @@ int main(int argc, char **argv){
     index += MAX_INTER;
     list_add(&todo_list.children, &task_to_add->list);
     ++todo_list.num_children;
+    int k;
+    for (k = 0; k < r; k++){
+      printf("%d ", (int) start_word[k]);
+    }
+    printf("init ...\n");
     start_word = next_word(start_word, MAX_INTER);
   }
   free(start_word);
