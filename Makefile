@@ -3,14 +3,14 @@ EX = mpiexec
 EXEC = master slave
 # SRC = master.c slave.c
 # OBJ=$(SRC:.c=.o)
-CFLAGS = -fopenmp -std=c99 -O0 -Iincludes -ggdb
+CFLAGS = -fopenmp -O3 -Iincludes -Wall -std=c99 #c99 for unsigned long long ....
 stat=diff
 n=1
 p=4
 t=5
 a=abcdefghijklmnopqrstuvwxyz
-r=3
-m=bu
+r=5
+m=ajoai
 
 all: $(EXEC)
 
@@ -30,5 +30,5 @@ src/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 clean:
-	rm -rf *.o $(EXEC) *~
+	rm -rf src/*.o $(EXEC)
 

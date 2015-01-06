@@ -3,7 +3,7 @@
 
 #include "list.h"
 
-#define MAX_INTER 1000
+#define MAX_INTER 100000
 #define MAX_CHARS 100
 
 enum tag {ASK, END, INTER, FINISH, NOTHING};

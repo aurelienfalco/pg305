@@ -15,37 +15,63 @@ MPI_Datatype task_type;
 struct task_list todo_list;
 char nb_letters = 1;
 int p = -1, t = -1, r = -1;
+unsigned long long int * powe = NULL;
 char * pwd_found = NULL;
 
 
-int power(int a, int pow){
-  int tmp = pow, res = 1;
+unsigned long long int power(int a, int pow){
+  unsigned long long int tmp = pow, res = 1;
   while (tmp-- > 0){
     res *= a;
   }
   return res;
 }
 
-char * next_word(char *word, int offset){
-  int remain = offset, i, tmp, pow, size = 0;
-  char *res = malloc(sizeof(char)*(r+1));
-  memset(res, 0, sizeof(char)*(r+1));
+void next_word(char *word, unsigned long long int offset){
+  unsigned long long int remain = offset, tmp; 
+  int j, rem, k, size = 0;
   while (word[size] != 0)
     ++size;
-  i = size - 1;
-  while (remain != 0){
-    pow = power(nb_letters-1, i);
-    tmp  = remain / pow;
-    if (tmp > 0){
-      res[i] = (word[i] + tmp) % nb_letters;
+  j = size - 1;
+  while (remain != 0 && j < r){
+    while (j >= 0){
+      k = 0;
+      tmp = 0;
+      while (k < (nb_letters - word[j] - 1)){
+	if (remain >= (tmp + powe[j])){
+	  tmp += powe[j];
+	} else
+	  break;
+	++k;
+      }
+      word[j] += k;
+      remain -= tmp;	
+      --j;
+      if (remain == 0)
+	return;
     }
-    if (res[i] == 0)
-      res[i] = 1;
-    --i;
-    remain -= tmp*pow;
+    /* int k; */
+    /* printf("->  "); */
+    /* for (k = 0; k <= r; k++){ */
+    /*   printf("%d ", (int) word[k]); */
+    /* } */
+    /* printf(" sous init ...\n"); */
+    rem = 0;
+    while (j < (r - 1)){
+      ++j;
+      if (word[j] == (nb_letters - 1)){
+	word[j] = 1;
+	rem = 1;
+      } else if (rem == 1) {
+	++word[j];
+	break;
+      } else {
+	break;
+      }
+    }
+    --remain;
   }
-  free(word);
-  return res;
+  return;
 }
 
 void thread_comm(MPI_Comm inter){
@@ -53,7 +79,6 @@ void thread_comm(MPI_Comm inter){
   while(1){
     struct task * task_to_deal_with;
     int flag;
-    int k;
     char buffer;
     MPI_Status status_p;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, inter, &flag, &status_p);
@@ -112,7 +137,6 @@ void thread_comm(MPI_Comm inter){
 int main(int argc, char **argv){
 
   MPI_Comm inter;
-  MPI_Status status;
   double time;
   int size, i;
   char c;
@@ -173,7 +197,7 @@ int main(int argc, char **argv){
   }
 
   if ((nb_letters >= 256) || (r >= MAX_CHARS) || (pwd_length >= MAX_CHARS)){
-      fprintf(stderr, "Error: out of range (> max #chars).\n");
+    fprintf(stderr, "Error: out of range (> max_chars : %d).\n", MAX_CHARS);
       return 1;    
   }
 
@@ -206,15 +230,21 @@ int main(int argc, char **argv){
   MPI_Type_commit(&task_type); // this type can represent an incoming task (besides start word) or the pwd found
 
   // create all task
-  int nb_possibilites = 0;
-  for (i = 1; i<=r;i++){
-    nb_possibilites += power(nb_letters - 1, i);
+  powe = malloc(sizeof(unsigned long long int)*(r+1));
+  for (i = 0; i <= r; ++i){
+    powe[i] = power(nb_letters - 1, i);
+    //printf("pow(%d) : %d\n", i, powe[i]);
+  }
+  unsigned long long int nb_possibilites = 0;
+  for (i = 1; i<=r; ++i){
+    nb_possibilites += powe[i];
   }
   int index = 0;
   char * start_word = malloc(sizeof(char)*(r+1));
   memset(start_word, 0, sizeof(char)*(r+1));
   start_word[0] = 1;
-  int nb_task = (nb_possibilites + MAX_INTER - 1) / MAX_INTER;
+  unsigned long long int nb_task = (nb_possibilites + MAX_INTER - 1) / MAX_INTER;
+  printf("%lld intervals of size %d to be computed.\n", nb_task, MAX_INTER);
   for (i = 0; i < nb_task; ++i){
     struct task * task_to_add = malloc(sizeof(struct task));
     memcpy(task_to_add->start_word,start_word,sizeof(char)*(r+1));
@@ -222,14 +252,15 @@ int main(int argc, char **argv){
     index += MAX_INTER;
     list_add(&todo_list.children, &task_to_add->list);
     ++todo_list.num_children;
-    int k;
-    for (k = 0; k < r; k++){
-      printf("%d ", (int) start_word[k]);
-    }
-    printf("init ...\n");
-    start_word = next_word(start_word, MAX_INTER);
+    /* int k; */
+    /* for (k = 0; k <= r; k++){ */
+    /*   printf("%d ", (int) start_word[k]); */
+    /* } */
+    /* printf("init ...\n"); */
+    next_word(start_word, MAX_INTER);
   }
   free(start_word);
+  free(powe);
 
   // comm thread
   printf("Interval generation ended, computation begin now.\n");

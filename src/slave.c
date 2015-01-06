@@ -160,7 +160,7 @@ void thread_comm(MPI_Comm inter){
 int main(int argc, char **argv){
 
   MPI_Comm inter;
-  int myrank, size, provided;
+  int provided;
   char c;
   char *a = NULL, *m = NULL;
   int i;
@@ -196,7 +196,7 @@ int main(int argc, char **argv){
   int a_of_b[2] = {1,(1+r)};
   MPI_Aint a_of_d[2];
   MPI_Datatype a_of_t[2] = {MPI_INT,MPI_CHAR};
-  MPI_Aint i1, i2, extent;
+  MPI_Aint i1, i2;
   struct task useless_task;
   MPI_Get_address(&useless_task, &i1);
   MPI_Get_address(&useless_task.nb_test, &i2); a_of_d[0] = i2-i1 ;
@@ -242,7 +242,7 @@ int main(int argc, char **argv){
       thread_comm(inter);
     else
       thread_computation();
-    printf("Slave %d exited thread %d\n", rank, n);
+    //    printf("Slave %d exited thread %d\n", rank, n);
   }
 
   if (pwd_found != NULL)
