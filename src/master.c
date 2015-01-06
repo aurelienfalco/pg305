@@ -250,7 +250,7 @@ int main(int argc, char **argv){
     memcpy(task_to_add->start_word,start_word,sizeof(char)*(r+1));
     task_to_add->nb_test = (MAX_INTER < (nb_possibilites - index)) ? MAX_INTER : (nb_possibilites - index);
     index += MAX_INTER;
-    list_add(&todo_list.children, &task_to_add->list);
+    list_add_tail(&todo_list.children, &task_to_add->list);
     ++todo_list.num_children;
     /* int k; */
     /* for (k = 0; k <= r; k++){ */

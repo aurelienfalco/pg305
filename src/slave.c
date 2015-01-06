@@ -44,9 +44,8 @@ char hash_verification(char * word){
   while ((pwd_given[i] !=  0) && (word[i] == pwd_given[i])){
     ++i;
   }
-  if((pwd_given[i] == 0) && (word[i] == 0)){
+  if(pwd_given[i] == word[i])
     return 1;
-  }
   return 0;
 }
 
@@ -126,7 +125,7 @@ void thread_comm(MPI_Comm inter){
 	MPI_Recv(task_to_deal_with, 1, task_type, 0, INTER, inter, MPI_STATUS_IGNORE);
 #pragma omp critical
 	{
-	  list_add(&todo_list.children, &task_to_deal_with->list);
+	  list_add_tail(&todo_list.children, &task_to_deal_with->list);
 	  ++todo_list.num_children;
 	  sem_post(&computers);
 	}
