@@ -50,17 +50,20 @@ char hash_verification(char * word){
 }
 
 void thread_computation(){
-  int i, k, word_size = 0;
+  unsigned long long int i;
+  int k, word_size = 0, task = 0;
   while(1){
     struct task * task_to_compute;
     sem_wait(&computers);
-    if(!list_empty(&(todo_list.children))){
-      // should critical section contain the list_empty_test ?
 #pragma omp critical
-      {
+    {
+      if (!list_empty(&(todo_list.children))){
 	task_to_compute = list_pop(&todo_list.children, struct task, list);
 	--todo_list.num_children;
+	++task;
       }
+    }
+    if(task == 1){
       // task compute
       for (i = 0; i < task_to_compute->nb_test; ++i){
 	if (hash_verification(task_to_compute->start_word) == 1){
@@ -76,6 +79,7 @@ void thread_computation(){
 	next_word(task_to_compute->start_word);
       }
       free(task_to_compute);
+      task = 0;
     } else { 
       if(end == 1){
 	++finishing;
@@ -194,7 +198,7 @@ int main(int argc, char **argv){
   
   int a_of_b[2] = {1,(1+r)};
   MPI_Aint a_of_d[2];
-  MPI_Datatype a_of_t[2] = {MPI_INT,MPI_CHAR};
+  MPI_Datatype a_of_t[2] = {MPI_UNSIGNED_LONG_LONG,MPI_CHAR};
   MPI_Aint i1, i2;
   struct task useless_task;
   MPI_Get_address(&useless_task, &i1);

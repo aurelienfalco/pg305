@@ -147,7 +147,7 @@ int main(int argc, char **argv){
   while ((c = getopt (argc, argv, "p:t:a:r:m:")) != -1){
     switch (c) {
       case 'p':
-      p = atoi(optarg);
+      p = atoi(optarg) - 1;
       break;
       case 't':
       t = atoi(optarg);
@@ -220,7 +220,7 @@ int main(int argc, char **argv){
 
   int a_of_b[2] = {1,(1+r)};
   MPI_Aint a_of_d[2];
-  MPI_Datatype a_of_t[2] = {MPI_INT,MPI_CHAR};
+  MPI_Datatype a_of_t[2] = {MPI_UNSIGNED_LONG_LONG,MPI_CHAR};
   MPI_Aint i1, i2;
   struct task useless_task;
   MPI_Get_address(&useless_task, &i1);
@@ -239,15 +239,16 @@ int main(int argc, char **argv){
   for (i = 1; i<=r; ++i){
     nb_possibilites += powe[i];
   }
-  int index = 0;
+  unsigned long long int index = 0;
   char * start_word = malloc(sizeof(char)*(r+1));
   memset(start_word, 0, sizeof(char)*(r+1));
   start_word[0] = 1;
   unsigned long long int nb_task = (nb_possibilites + MAX_INTER - 1) / MAX_INTER;
   printf("%lld intervals of size %d to be computed.\n", nb_task, MAX_INTER);
-  for (i = 0; i < nb_task; ++i){
+  unsigned long long j;
+  for (j = 0; j < nb_task; ++j){
     struct task * task_to_add = malloc(sizeof(struct task));
-    memcpy(task_to_add->start_word,start_word,sizeof(char)*(r+1));
+    memcpy(task_to_add->start_word, start_word,sizeof(char)*(r+1));
     task_to_add->nb_test = (MAX_INTER < (nb_possibilites - index)) ? MAX_INTER : (nb_possibilites - index);
     index += MAX_INTER;
     list_add_tail(&todo_list.children, &task_to_add->list);

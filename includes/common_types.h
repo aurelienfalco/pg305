@@ -16,7 +16,7 @@ struct task_list{
 
 struct task{
   struct list_node list;
-  int nb_test;
+  unsigned long long int nb_test;
   char start_word[MAX_CHARS];
 };
 
