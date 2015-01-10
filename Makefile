@@ -10,8 +10,8 @@ n=1
 p=4
 t=5
 a=abcdefghijklmnopqrstuvwxyz
-r=5
-m=ajoai
+r=6
+m=passwd
 
 all: $(EXEC)
 
@@ -20,9 +20,7 @@ exec: $(EXEC)
 
 qsub: $(EXEC)
 	rm -rf res.*
-	@qsub batch; 
-	@sleep 3; 
-	@cat res.*
+	@qsub batch;
 
 %: src/%.o
 	$(CC) $(CFLAGS) $^ -o $@

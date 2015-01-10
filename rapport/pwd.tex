@@ -1,0 +1,12 @@
+\section{Recherche de mot de passe} % (fold)
+\label{sec:recherche_de_mot_de_passe}
+
+Le programme devait effectuer une reracherche de mot de passe par force brute. L'utilisateur lance tout d'abord un programme appelé master (maître). Celui-ci lance $p-1$ processus appelés slave (esclave). Chaque processus esclave lance à son tout $t+1$ threads. Parmi ces threads, un servira aux communications avec le maître et les autres effectueront des tâches. Ces tâches sont en fait des intervalles de mots à vérifier. 
+
+
+\section{Organisation} % (fold)
+\label{sec:organisation}
+
+Le code a été segmenté pour permettre une lecture plus aisée de l'ordre dans lequel s'effectuent les diverses opérations. Le code du maître se trouve donc dans un fichier séparé de celui des esclaves. Le fonctionnement du thread de communication est regroupé dans une fonction séparée de celle des threads de travail. Des fonctions permettent de calculer le mot suivant dans l'ordre que nous avons fixé et de vérifier si un mot est le mot de passe. L'ordre en question est ici lexicographique.
+
+Un intervalle est composé de deux éléments: un mot de départ et le nombre de mots à vérifier. Ainsi, chaque thread, peut vérifier tout un intervalle, en utilisant la fonction calculant le mot suivant.
