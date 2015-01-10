@@ -8,6 +8,6 @@ TODO: terminaison
 \section{Organisation} % (fold)
 \label{sec:organisation}
 
-Le code a été segmenté pour permettre une lecture plus aisée de l'ordre dans lequel s'effectuent les diverses opérations. Le code du maître se trouve donc dans un fichier séparé de celui des esclaves. Le fonctionnement du thread de communication est regroupé dans une fonction séparée de celle des threads de travail. Des fonctions permettent de calculer le mot suivant dans l'ordre que nous avons fixé et de vérifier si un mot est le mot de passe. L'ordre en question est ici lexicographique.
+Le code a été segmenté pour permettre une lecture plus aisée de l'ordre dans lequel s'effectuent les diverses opérations. Le code du maître se trouve donc dans un fichier séparé de celui des esclaves. Le fonctionnement du thread de communication est regroupé dans une fonction séparée de celle des threads de travail. Des fonctions permettent de calculer le mot suivant dans l'ordre que nous avons fixé et de vérifier si un mot est le mot de passe. L'ordre en question est ici lexicographique par taille, c'est-à-dire que nous comparons d'abord tous les mots d'une certaine longueur, dans l'ordre lexicographique, puis nous passons aux mots d'une lettre de plus.
 
 Un intervalle est composé de deux éléments: un mot de départ et le nombre de mots à vérifier. Ainsi, chaque thread, peut vérifier tout un intervalle, en utilisant la fonction calculant le mot suivant.
