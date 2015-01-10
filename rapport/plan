@@ -1,0 +1,31 @@
+\title{PG305 : projet de crackage de mot de passe}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+\section{Fonctionnement global}
+
+\subsection{directives de l'énoncé}
+
+\subsection{automates de communication}
+
+\paragraph{master}
+
+\paragraph{slave}
+
+\section{Choix d'implémentation}
+
+\subsection{représentation du mot de passe}
+
+\subsection{éclatement des intervalles}
+
+\subsection{accès à la pile de tâches}
+
+\section{Tests de performances}
+
+\subsection{scalabilité du programme}
+
+\subsection{influence du nombre de threads}
+
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}

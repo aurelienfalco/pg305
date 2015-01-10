@@ -8,4 +8,4 @@ all: $(NAME:=.tex)
 	@evince $(NAME:=.pdf) &
 
 clean:
-	rm -rf *.log *.aux *.toc *.pdf
+	rm -rf *.log *.aux *.toc *.pdf *.out

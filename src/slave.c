@@ -27,7 +27,7 @@ char * org = NULL;
 int p, t, r, n;
 
 
-void next_word(char* word){
+inline void next_word(char* word){
   int i = 0;
   while (i < r){
     word[i] = (word[i]+1)%nb_letters;
@@ -39,7 +39,7 @@ void next_word(char* word){
   }
 }
 
-char hash_verification(char * word){
+inline char hash_verification(char * word){
   int i = 0;
   while ((pwd_given[i] !=  0) && (word[i] == pwd_given[i])){
     ++i;
@@ -133,6 +133,8 @@ void thread_comm(MPI_Comm inter){
 	  ++todo_list.num_children;
 	  sem_post(&computers);
 	}
+	// no significative differences
+	// pthread_yield(); 
 	asking = 0;
 	// printf("Slave %d received INTER from master\n", rank);
 	break;

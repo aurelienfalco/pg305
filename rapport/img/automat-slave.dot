@@ -1,0 +1,44 @@
+digraph coherence {
+
+graph [fontname = "times"];
+node [fontname = "times"];
+edge [fontname = "times"];
+
+    node
+        [shape=Mrecord width=1.5];
+
+    subgraph process_automaton {
+
+        label="Process";
+
+        //
+        // States (Nodes)
+        //
+
+        "Process::Normal"
+            [root="true" color="green" label="{Etat normal}"];
+
+        "Process::Demande"
+            [label="{Demande en cours}"];
+
+        "Process::Terminaison"
+            [color="red" label="{Terminaison}"];
+
+        //
+        // Transitions (Edges)
+        //
+
+        "Process::Normal" -> "Process::Demande"
+            [label=<Plus de tâches dans la pile locale<BR/><FONT color="blue">Envoi d'une demande de tâche à son successeur</FONT>>];
+
+        "Process::Demande" -> "Process::Normal"
+            [label=<Réception d'une tâche (indices de début et fin de la tuile)<BR/>envoyée par un autre processus<BR/><FONT color="blue">Ajout de la tâche dans la pile locale</FONT>>];
+
+        "Process::Normal" -> "Process::Terminaison"
+            [label=<Réception d'un message de terminaison<BR/><FONT color="blue">Termine de traiter les tâches locales restantes. Ensuite :<BR/>*<u>Si quelconque</u> : envoi des tuiles traitées au root<BR/>*<u>Si root</u> : réception des tuiles</FONT>>];
+
+        "Process::Demande" -> "Process::Terminaison"
+            [label=<Réception de sa propre demande de tâche<BR/><FONT color="blue">Envoi d'un message de terminaison à son successeur<BR/>Termine de traiter les tâches locales restantes. Ensuite :<BR/>*<u>Si quelconque</u> : envoi des tuiles traitées au root<BR/>*<u>Si root</u> : réception des tuiles</FONT>>];
+    }
+
+}
