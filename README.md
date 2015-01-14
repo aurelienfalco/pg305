@@ -1,12 +1,16 @@
-###############
-# Compilation #
-###############
-make
+#############################
+# Compilation  et exécution #
+#############################
 
-#############
-# Execution #
-#############
-make exec p=proc seq=bool p=bool
+Sur votre ordinateur :
+
+make exec [p=<number>] [t=<number>] [r=<number>] [m=<word>] [a=<word>]
+
+Sur Plafrim :
+le dossier nommé pg305-hf doit être à la racine de votre $HOME.
+
+make qsub [p=<number>] [t=<number>] [r=<number>] [m=<word>] [a=<word>]
+
 Paramètres (optionnels):
 - p : le nombre de processus (par défaut 4);
 - t : le nombre de threads de travail (par défaut 5);
@@ -15,19 +19,10 @@ Paramètres (optionnels):
 - m : le mot de passe (par défaut passwd).
 
 
-#########
-# Stats #
-#########
-make stat
-ou 
-make qsub
-Cette dernière option seulement si vous êtes sur plafrim, mais attention au dossier contenant les sources. Dans ce cas, il faudra peut-être modifier le batch.
-La série de speedup ainsi affichée par ligne correspond au nombre de processeur suivi du speedup calculé. 
-
 ###########
 # Courbes #
 ###########
-make plot
-Vous pouvez choisir le fichier contenant les données par la variable stat.
-Par exemple:
-make plot stat=data.txt
+
+Sur Plafrim, il est possible de générer automatiquement les graphes
+présents dans le rapport, pour cela exécutez :
+./createGraph.sh

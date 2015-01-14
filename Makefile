@@ -13,14 +13,19 @@ a=abcdefghijklmnopqrstuvwxyz
 r=6
 m=passwd
 
+
 all: $(EXEC)
 
 exec: $(EXEC)
 	$(EX) -np $(n) master -p $(p) -t $(t) -a $(a) -r $(r) -m $(m)
 
 qsub: $(EXEC)
-	rm -rf res.*
-	@qsub batch;
+	rm -rf pg305-fh.*
+	module load compiler/gcc mpi/openmpi/current
+	echo "#PBS -l nodes=$(n):ppn=$(p)" > tmp.pbs
+	echo "module load compiler/gcc mpi/openmpi/current" >> tmp.pbs
+	echo "mpiexec -np $(n) ./pg305-fh/master -p $(p) -t $(t) -a $(a) -r $(r) -m $(m)" >> run.pbs
+	@qsub -N pg305-hf run.pbs;
 
 %: src/%.o
 	$(CC) $(CFLAGS) $^ -o $@
