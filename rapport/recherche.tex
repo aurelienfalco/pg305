@@ -4,12 +4,15 @@
 \subsection{Directives de l'énoncé} % (fold)
 \label{sub:enonce}
 
-% subsection 'enonc_ (end)
-Le programme devait effectuer une reracherche de mot de passe par force brute. L'utilisateur lance tout d'abord un programme appelé master (maître). Celui-ci lance $p-1$ processus appelés slave (esclave). Chaque processus esclave lance à son tout $t+1$ threads. Parmi ces threads, un servira aux communications avec le maître et les autres effectueront des tâches. Ces tâches sont en fait des intervalles de mots à vérifier. 
+Le programme effectue une recherche de mot de passe par force brute. L'utilisateur lance tout d'abord un programme appelé master (maître). Celui-ci lance $p-1$ processus appelés slave (esclave). Chaque processus esclave lance à son tout $t+1$ threads. Parmi ces threads, un servira aux communications avec le maître et les autres effectueront des tâches. Ces tâches sont en fait des intervalles de mots à vérifier. 
 
+Le programme termine si :
+\begin{itemize}
+	\item un des threads de travail trouve le mot de passe. Dans ce cas, l'esclave correspondant envoie le mot de passe au maître. Ce dernier affiche le mot de passe, arrête les autres esclaves et termine.
+	\item personne ne trouve de mot de passe (caractère pas dans l'alphabet, mot plus long que la taille maximum donnée). Le maître attend que les esclaves terminent toutes les tâches et affiche que le mot de passe n'a pas été trouvé.
+\end{itemize}
 
-
-TODO: terminaison
+Les communications doivent être recouvertes par des calculs. Ainsi, un thread demandera du travail bien avant d'avoir terminé son intervalle de recherche courant.
 
 \subsection{Automates de communication} % (fold)
 \label{sub:automates_de_communication}
