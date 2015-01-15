@@ -1,0 +1,24 @@
+\section{Exécution \& tests} % (fold)
+\label{sec:execution}
+
+A l'exécution l'utilisateur peut passer certains paramètres au programme. Ceux-ci sont les suivants :
+\begin{itemize}
+	\item $p$ : nombre de processus total. $p-1$ esclaves seront créés ;
+	\item $t$ : nombre de threads de travail. Au total, $t+1$ threads sont créés, en comptant le thread de communication ;
+	\item $r$ : longueur maximum des mots à vérifier ;
+	\item $m$ : le mot de passe.
+\end{itemize}
+
+
+\section{Performances} % (fold)
+\label{sec:perf}
+
+Une série de tests est lancée sur différentes tailles de mots
+
+\begin{figure}[h!]
+\centering
+% \includegraphics[width=0.8\textwidth]{stats.png}
+\caption{Résultats obtenus}
+\label{fig:stats}
+\end{figure}
+

@@ -1,0 +1,32 @@
+\section{Recherche de mot de passe} % (fold)
+\label{sec:recherche_de_mot_de_passe}
+
+\subsection{Directives de l'énoncé} % (fold)
+\label{sub:enonce}
+
+% subsection 'enonc_ (end)
+Le programme devait effectuer une reracherche de mot de passe par force brute. L'utilisateur lance tout d'abord un programme appelé master (maître). Celui-ci lance $p-1$ processus appelés slave (esclave). Chaque processus esclave lance à son tout $t+1$ threads. Parmi ces threads, un servira aux communications avec le maître et les autres effectueront des tâches. Ces tâches sont en fait des intervalles de mots à vérifier. 
+
+
+
+TODO: terminaison
+
+\subsection{Automates de communication} % (fold)
+\label{sub:automates_de_communication}
+
+Les threads de communication du maître et des esclaves répondent aux automates des figures \ref{fig:master} et \ref{fig:slave}
+
+\begin{figure}[h!]
+\centering
+% \includegraphics[width=0.8\textwidth]{master}
+\caption{Automate du Master}
+\label{fig:master}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+% \includegraphics[width=0.8\textwidth]{slave}
+\caption{Automate du Slave}
+\label{fig:slave}
+\end{figure}
