@@ -141,29 +141,32 @@ int main(int argc, char **argv){
   int size, i;
   char c;
   char *a = NULL, *m = NULL;
+  char *path = NULL;
 
   printf("Welcome to the World of the Mighty Password\n");
 
-  while ((c = getopt (argc, argv, "p:t:a:r:m:")) != -1){
+  while ((c = getopt (argc, argv, "p:t:a:r:m:c:")) != -1){
     switch (c) {
-      case 'p':
+    case 'p':
       p = atoi(optarg) - 1;
       break;
-      case 't':
+    case 't':
       t = atoi(optarg);
       break;
-      case 'a':
+    case 'a':
       a = optarg;
       break;
-      case 'r':
+    case 'r':
       r = atoi(optarg);
       break;
-      case 'm':
+    case 'm':
       m = optarg;
       break;
-      default:
+    case 'c':
+      path = optarg;
+      break;
+    default:
       return 1;
-
     }
   }
   // Just in case
@@ -213,8 +216,12 @@ int main(int argc, char **argv){
     MPI_Finalize();
     return 1;
   }
-  MPI_Comm_spawn("slave", argv+1, p, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &inter, MPI_ERRCODES_IGNORE);
+  if (path == NULL)
+    MPI_Comm_spawn("slave", argv+1, p, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &inter, MPI_ERRCODES_IGNORE);
+  else
+    MPI_Comm_spawn(path, argv+1, p, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &inter, MPI_ERRCODES_IGNORE);
 
+    
   printf("Created %d slaves\n", p);
 
 

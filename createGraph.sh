@@ -24,6 +24,7 @@ ppn4='4 5 6 7 8'
 values_ppn=($ppn1 $ppn2 $ppn3 $ppn4) # $ppn5 $ppn6
 nb_iter=5
 cmpt=0
+path=./pg305-fh
 
 ## Création du graphe ms en fonction du nombre de processus
 
@@ -37,20 +38,20 @@ do
     do
 	echo "#PBS -l nodes=$i:ppn=${values_ppn[$cmpt]}" > tmp.pbs
 	echo "module load compiler/gcc mpi/openmpi/current" >> tmp.pbs
-	echo "mpiexec -np $n ./pg305-fh/master -p $(($i * ${values_ppn[$cmpt]})) -t $t -a $a -r $r -m $m" >> tmp.pbs
 	rm -f $nom_fichier.out
 	for k in $(seq 1 $nb_iter)
 	do
-	    rm -f pg305-fh.*
-	    qsub -l walltime=00:10:00 -N pg305-fh tmp.pbs
-	    cat pg305-fh* 
-	    while [ $? -ne 0 ]
-	    do
-		sleep $slept
-		cat pg305-fh*
-	    done
-	    cat pg305-fh* | grep 'Time' | grep -Eo '[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?' >> $nom_fichier.out
+	    echo "mpiexec -np $n $path/master -p $(($i * ${values_ppn[$cmpt]})) -t $t -a $a -r $r -m $m -c $path/slave" >> tmp.pbs
 	done
+	rm -f pg305-fh.*
+	qsub -l walltime=00:10:00 -N pg305-fh tmp.pbs
+	cat pg305-fh* 
+	while [ $? -ne 0 ]
+	do
+	    sleep $slept
+	    cat pg305-fh*
+	done
+	cat pg305-fh* | grep 'Time' | grep -Eo '[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?' >> $nom_fichier.out
 	cat $nom_fichier.out | tr '\n' '\t' > $nom_fichier.bis.out 
 	value=$(head -n 1 $nom_fichier.bis.out)    
 	echo -e "$(($i * ${values_ppn[$cmpt]}))\t$value" >> tmp

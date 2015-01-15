@@ -170,22 +170,24 @@ int main(int argc, char **argv){
   char *a = NULL, *m = NULL;
   int i;
 
-  while ((c = getopt (argc, argv, "p:t:a:r:m:")) != -1){
+  while ((c = getopt (argc, argv, "p:t:a:r:m:c:")) != -1){
     switch (c) {
-      case 'p':
+    case 'p':
       p = atoi(optarg);
       break;
-      case 't':
+    case 't':
       t = atoi(optarg);
       break;
-      case 'a':
+    case 'a':
       a = optarg;
       break;
-      case 'r':
+    case 'r':
       r = atoi(optarg);
       break;
-      case 'm':
+    case 'm':
       m = optarg;
+      break;
+    case 'c':
       break;
     }
   }
