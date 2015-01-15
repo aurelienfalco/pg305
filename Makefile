@@ -27,7 +27,7 @@ qsub: $(EXEC)
 	echo "mpiexec -np $(n) ./pg305-fh/master -p $(p) -t $(t) -a $(a) -r $(r) -m $(m)" >> run.pbs
 	@qsub -N pg305-hf run.pbs;
 
-%: src/%.o
+$(EXEC):%: src/%.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 src/%.o: src/%.c
