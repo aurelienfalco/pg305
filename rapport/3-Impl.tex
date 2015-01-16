@@ -1,7 +1,11 @@
 \section{Choix d'implémentation} % (fold)
 \label{sec:impl}
 
-Les fonctions des deux programmes -- maître et esclave -- sont peu nombreuses : chacun des deux possède une fonction de communication, le maître possède une fonction pour répartir les mots de passes, l'esclave une pour les vérifier. Ce sont les fonctionnements internes de ses fonctions et de leurs données qui sont ici détaillées, et non les communications vues dans la section \ref{sec:recherche_de_mot_de_passe} précédente.
+Les fonctions des deux programmes -- maître et esclave -- sont peu nombreuses : chacun des deux possède une fonction de communication, le maître possède une fonction pour répartir les mots de passes, l'esclave une pour les vérifier.
+
+\subsection{Demande de tâche} % (fold)
+
+En pratique, le \emph{thread} de communication demande une nouvelle tâche dès que sa pile locale contient moins de tâches que son nombre de \emph{threaads} de calcul. Si jamais les tâches ne sont pas arrivées à temps, les \emph{threads} de calculs s'endorment jusqu'à ce qu'une nouvelle tâche arrive. Il sont alors réveillés par le \emph{thread} de communication. Cette attente passive est réalisée grâce à l'utilisation de sémaphores. Notons que le \emph{thread} de communication fonctionne en attente active.
 
 \subsection{Représentation du mot de passe}
 
