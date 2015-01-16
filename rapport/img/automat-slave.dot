@@ -29,16 +29,13 @@ edge [fontname = "times"];
         //
 
         "Process::Normal" -> "Process::Demande"
-            [label=<Plus de tâches dans la pile locale<BR/><FONT color="blue">Envoi d'une demande de tâche à son successeur</FONT>>];
+            [label=<Plus de tâches dans la file locale<BR/><FONT color="blue">Envoi d'une demande de tâche au maître</FONT>>];
 
         "Process::Demande" -> "Process::Normal"
-            [label=<Réception d'une tâche (indices de début et fin de la tuile)<BR/>envoyée par un autre processus<BR/><FONT color="blue">Ajout de la tâche dans la pile locale</FONT>>];
+            [label=<Réception d'une tâche (un mot et un nombre de mots à traiter)<BR/>envoyée par le maître<BR/><FONT color="blue">Ajout de la tâche dans la file locale</FONT>>];
 
         "Process::Normal" -> "Process::Terminaison"
-            [label=<Réception d'un message de terminaison<BR/><FONT color="blue">Termine de traiter les tâches locales restantes. Ensuite :<BR/>*<u>Si quelconque</u> : envoi des tuiles traitées au root<BR/>*<u>Si root</u> : réception des tuiles</FONT>>];
-
-        "Process::Demande" -> "Process::Terminaison"
-            [label=<Réception de sa propre demande de tâche<BR/><FONT color="blue">Envoi d'un message de terminaison à son successeur<BR/>Termine de traiter les tâches locales restantes. Ensuite :<BR/>*<u>Si quelconque</u> : envoi des tuiles traitées au root<BR/>*<u>Si root</u> : réception des tuiles</FONT>>];
+            [label=<Réception d'un message de terminaison<BR/><FONT color="blue">Vide la file de tâches. Ensuite :<BR/>*<u>Si quelconque</u> : Termine<BR/>*<u>Si root</u> : Affiche le mot de passe et termine.</FONT>>];
     }
 
 }

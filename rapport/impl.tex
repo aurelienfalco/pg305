@@ -6,15 +6,15 @@ Le code a été segmenté pour permettre une lecture plus aisée de l'ordre dans
 \subsection{Représentation du mot de passe}
 
 
-\subsection{éclatement des intervalles}
+\subsection{\'Eclatement des intervalles}
 
 L'ordre utilisé pour organiser la liste des mots à tester est ici lexicographique par taille, c'est-à-dire que nous comparons d'abord tous les mots d'une certaine longueur, dans l'ordre lexicographique, pour ensuite pouvoir passer aux mots comportant une lettre de plus.
 
 Un intervalle est composé de deux éléments: un mot de départ et le nombre de mots à vérifier. Ainsi, chaque thread, peut vérifier tout un intervalle, en utilisant la fonction calculant le mot suivant.
 
-\subsection{accès à la pile de tâches}
+\subsection{Accès à la file de tâches}
 
-La pile des tâches est partagée entre les différents threads de travail. Aussi faut-il gérer la concurrence des threads qui veulent y accéder, d'où l'utilisation de sections critiques/atomiques (voir l'exemple \ref{critical})
+La file des tâches est partagée entre les différents threads de travail. Aussi faut-il gérer la concurrence des threads qui veulent y accéder, d'où l'utilisation de sections critiques/atomiques (voir l'exemple \ref{critical}). Ainsi, chaque thread peut retirer une tâche de la file et l'exécuter sans crainte de dédoubler un travail. 
 
 \begin{figure}
 \begin{lstlisting}
