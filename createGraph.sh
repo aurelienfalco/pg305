@@ -1,6 +1,6 @@
+module load compiler/gcc mpi/openmpi/current
 if [ ! -e "./master" ] || [ ! -e "./slave" ] ; then 
     echo "Compiling project."
-    module load compiler/gcc mpi/openmpi/current
     make
 fi
 

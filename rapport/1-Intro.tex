@@ -1,5 +1,5 @@
 \section*{Introduction} % (fold)
 \addcontentsline{toc}{section}{Introduction}
 \label{sec:introduction}
-Le but du projet était d'implémenter une recherche de mot de passe par force brute, répartie sur plusieurs processus. Dans ces processus la charge serait sur plusieurs threads OpenMP.
+Le but du projet était d'implémenter une recherche de mot de passe par force brute, répartie sur plusieurs processus esclaves. Dans ces processus, la charge de travail est elle-même répartie dans plusieurs \emph{threads}, ils communiquent avec un processus maître afin d'obtenir de nouveaux mots à tester. Le mot de passe, l'alphabet, la longueur maximale des mots à vérifier, le nombre total de processus (incluant le processus maître lançant les processus esclaves) et le nombre de \emph{threads} de travail par processus escalve sont en paramètres du processus principal maître. Les caractères peuvent être choisis parmi le standard \textsf{ASCII}, au nombre maximal de $200$, uniquement pour des raisons de trop important volume de calcul sinon.
 

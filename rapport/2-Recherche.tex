@@ -1,0 +1,44 @@
+\section{Recherche distribuée de mot de passe} % (fold)
+\label{sec:recherche_de_mot_de_passe}
+
+La recherche de mot de passe, étant effectuée par force brute, le fonctionnement du programme est très simple : le maître génère au début un certain nombre de tâches -- intervalles de mot de passes à tester -- puis envoie ces tâches aux esclaves qui en demandent. Cette section détaille plus précisément comment les communications s'effectuent entre le processus maître et les esclaves, jusqu'à la terminaison de tous.
+
+\subsection{Directives de l'énoncé} % (fold)
+\label{sub:enonce}
+
+Le programme effectue une recherche de mot de passe par force brute. L'utilisateur lance tout d'abord un programme appelé master (maître). Celui-ci lance $p-1$ processus appelés slave (esclave). Chaque processus esclave lance à son tour $t+1$ \emph{threads}. Parmi ces \emph{threads}, un servira uniquement aux communications avec le maître et les autres effectueront des tâches. 
+
+Le programme peut terminer de deux façons différentes :
+\begin{itemize}
+	\item Soit un des \emph{threads} de travail trouve le mot de passe. Dans ce cas, l'esclave correspondant envoie le mot de passe au maître. Ce dernier affiche le mot de passe, et ne donne plus de nouvelles tâches aux autres esclaves et termine.
+	\item Soit personne ne trouve le mot de passe (mot plus long que la taille maximum donnée). Le maître attend que les esclaves terminent toutes les tâches et affiche que le mot de passe n'a pas été trouvé.
+\end{itemize}
+
+Les communications doivent être recouvertes par des calculs. Ainsi, un esclave demandera du travail bien avant d'avoir terminé son intervalle de recherche courant. En pratique, le \emph{thread} de communication demande une nouvelle tâche dès que sa pile locale contient moins de tâches que son nombre de \emph{threaads} de calcul. Si jamais les tâches ne sont pas arrivées à temps, les \emph{threads} de calculs s'endorment jusqu'à ce qu'une nouvelle tâche arrive. Il sont alors réveillés par le \emph{thread} de communication. Cette attente passive est réalisée grâce à l'utilisation de sémaphores. Notons que le \emph{thread} de communication fonctionne en attente active.
+
+\subsection{Communications} % (fold)
+\label{sub:communication}
+
+Les \emph{threads} de communication respectivement du maître et de l'esclave s'échangent les même types de messages, mais ne font pas les mêmes actions en réponse. Ils sont ici représentés par les automates associés, figure \ref{fig:master} et \ref{fig:slave}. Les messages échangés peuvent être des différents types -- ou \emph{tag} suivants :
+\begin{itemize}
+\item \textbf{ASK} : un esclave demande une tâche supplémentaire au maître.
+\item \textbf{END} : le maître signifie à un esclave que le mot de passe a été trouvé et qu'il doit terminer, en réponse à un \textbf{ASK}.
+\item \textbf{INTER} : le maître envoie une tâche à un esclave, ou bien un esclave lui envoie le mot de passe. 
+\item \textbf{FINISH} : le maître n'a plus de tâche à distribuer, en réponse à un \textbf{ASK}.
+\item \textbf{NOTHING} : l'esclave a terminé et n'a pas trouvé de mot de passe, il en informe le maître.
+\end{itemize}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\textwidth]{automat-master}
+\caption{Automate du maître}
+\label{fig:master}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\textwidth]{automat-slave}
+\caption{Automate de l'esclave}
+\label{fig:slave}
+\end{figure}
