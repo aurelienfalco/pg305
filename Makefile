@@ -37,3 +37,8 @@ src/%.o: src/%.c
 clean:
 	rm -rf src/*.o $(EXEC)
 
+clean-all: clean
+	cd rapport
+	make clean
+
+
