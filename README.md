@@ -27,3 +27,9 @@ Paramètres (optionnels):
 Sur Plafrim, il est possible de générer automatiquement les graphes
 présents dans le rapport, pour cela exécutez :
 ./createGraph.sh
+ou
+./otherModuleCreateGraph.sh
+pour compiler avec gcc
+
+L'exécution peut prendre un certain, l'affichage régulier d'erreurs de 
+cat * est normale.
