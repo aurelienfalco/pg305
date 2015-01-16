@@ -56,12 +56,6 @@ void next_word(char *word, unsigned long long int offset){
 			if (remain == 0)
 				return;
 		}
-    /* int k; */
-    /* printf("->  "); */
-    /* for (k = 0; k <= r; k++){ */
-    /*   printf("%d ", (int) word[k]); */
-    /* } */
-    /* printf(" sous init ...\n"); */
 		rem = 0;
 		while (j < (r - 1)){
 			++j;
