@@ -36,7 +36,7 @@ plot: graph_procs.dat
 	eog graph_procs.png&
 
 clean:
-	rm -rf src/*.o $(EXEC)
+	rm -rf src/*.o $(EXEC) *tmp* *png
 
 clean-all: clean
 	cd rapport;	make clean
