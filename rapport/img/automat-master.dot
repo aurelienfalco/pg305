@@ -29,16 +29,19 @@ edge [fontname = "times"];
         //
 
         "Process::Normal" -> "Process::Normal"
-            [label=<Réception d'une demande de travail<BR/><FONT color="blue">Envoi d'une tâche au demandeur</FONT>>];
+            [label=<Réception d'une demande de travail : ASK<BR/><FONT color="blue">S'il reste de tâches (1), sinon (2)<BR/>(1) Envoi d'une tâche à l'émetteur : INTER<BR/>(2) Envoi de l'attente de terminaison : FINISH</FONT>>];
 
+	 "Process::Normal" -> "Process::Normal"
+            [label=<Réception d'une fin de travail : NOTHING<BR/><FONT color="blue">Incrémentation du nombre d'esclaves terminés</FONT>>];
+	    
         "Process::Normal" -> "Process::Terminaison"
-            [label=<Réception d'un message de terminaison<BR/><FONT color="blue"><BR/>*<u>Si mot de passe trouvé</u> : Envoie un message de terminaison aux slaves<BR/>*<u>Sinon</u> : Attend que les autres processus le contacte.</FONT>>];
+            [label=<Réception du mot de passe : INTER<BR/><FONT color="blue"><BR/>Envoi de la terminaison à l'émetteur : END</FONT><BR/>Incrémentation du nombre d'esclaves terminés>];
 
         "Process::Terminaison" -> "Process::Terminaison"
-            [label=<Réception d'une demande de travail<BR/><FONT color="blue">Envoi d'une tâche au demandeur</FONT>>];
-
+            [label=<Réception d'une demande de travail : ASK<BR/><FONT color="blue">Envoi de la terminaison à l'émetteur : END<BR/>Incrémentation du nombre d'esclaves terminés</FONT>>];
+	    
         "Process::Terminaison" -> "Process::Terminé"
-            [label=<Tous les slaves ont terminé<BR/><FONT color="blue">Affiche le mot de passe s'il a été trouvé et termine.</FONT>>];    
+            [label=<Tous les esclaves ont terminé<BR/><FONT color="blue">Affiche le mot de passe s'il a été trouvé et termine.</FONT>>];    
     }
 
 }

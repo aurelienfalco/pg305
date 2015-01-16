@@ -22,20 +22,30 @@ edge [fontname = "times"];
             [label="{Demande en cours}"];
 
         "Process::Terminaison"
-            [color="red" label="{Terminaison}"];
+            [label="{Plus de tâches du maître}"];
+	    
+        "Process::Terminé"
+            [color="red" label="{Terminé}"];
 
         //
         // Transitions (Edges)
         //
 
         "Process::Normal" -> "Process::Demande"
-            [label=<Plus de tâches dans la file locale<BR/><FONT color="blue">Envoi d'une demande de tâche au maître</FONT>>];
+            [label=<Plus de tâches dans la file locale<BR/><FONT color="blue">Envoi d'une demande de tâche au maître : ASK</FONT>>];
 
         "Process::Demande" -> "Process::Normal"
-            [label=<Réception d'une tâche (un mot et un nombre de mots à traiter)<BR/>envoyée par le maître<BR/><FONT color="blue">Ajout de la tâche dans la file locale</FONT>>];
+            [label=<Réception d'une tâche : INTER<BR/><FONT color="blue">Ajout de la tâche dans la pile locale<BR/>Réveille un thread</FONT>>];
 
-        "Process::Normal" -> "Process::Terminaison"
-            [label=<Réception d'un message de terminaison<BR/><FONT color="blue">Vide la file de tâches et termine.</FONT>>];
-    }
+        "Process::Demande" -> "Process::Terminaison"
+            [label=<Réception du message : FINISH<BR/><FONT color="blue">Ne demande plus de tâches</FONT>>];
+    
+        "Process::Normal" -> "Process::Terminé"
+            [label=<Réception du message : END<BR/><FONT color="blue">Vide la file de tâches et termine.</FONT>>];
+	
+	"Process::Terminaison" -> "Process::Terminé"
+            [label=<Réception du message : END<BR/>ou plus de tâches et threads terminés<BR/><FONT color="blue">Vide la file de tâches et termine.</FONT>>];
+
+}
 
 }
