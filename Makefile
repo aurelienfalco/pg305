@@ -34,6 +34,10 @@ $(EXEC):%: src/%.o
 src/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
+plot: graph_procs.dat
+	gnuplot dataGraph.gp
+	eog graph_procs.png&
+
 clean:
 	rm -rf src/*.o $(EXEC)
 
