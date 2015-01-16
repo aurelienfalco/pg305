@@ -149,7 +149,7 @@ int main(int argc, char **argv){
 	char *a = NULL, *m = NULL;
 	char *path = NULL;
 
-	printf("Welcome to the World of the Mighty Password\n");
+	printf("~ Welcome to the World of the Mighty Password ~\n");
 
 	while ((c = getopt (argc, argv, "p:t:a:r:m:c:")) != -1){
 		switch (c) {
