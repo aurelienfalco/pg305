@@ -90,16 +90,15 @@ void thread_comm(MPI_Comm inter){
 		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, inter, &flag, &status_p);
 		if (flag) {
 			switch(status_p.MPI_TAG) {
-	//Message asking for another tile. Here, the content of the message is an int corresponding to the original source of the message.
+				//Message asking for another task. Here, the content of the message is an int corresponding to the original source of the message.
 				case ASK :
 				MPI_Recv(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, ASK, inter, MPI_STATUS_IGNORE);
 				if (pwd_found != NULL){
-	  // The process send END message, because we have the password
+				// Master sends END message, because we have the password
 					MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, END, inter);
-	  // printf("finishing++ pwd\n");
 					++finishing;
 				} else if (todo_list.num_children == 0){     
-	  // The process send FINISH message, because we have any task left
+				// Master sends FINISH message, because we have no task left
 					MPI_Send(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, FINISH, inter);
 				} else {
 					task_to_deal_with = list_pop(&todo_list.children, struct task, list);
@@ -107,10 +106,9 @@ void thread_comm(MPI_Comm inter){
 					free(task_to_deal_with);
 					--todo_list.num_children;
 				}
-	// printf("Master received ASK from slave %d\n", status_p.MPI_SOURCE);
 				break;
 				case INTER :
-	// printf("finishing++ inter\n");
+				// Password was found
 				++finishing;
 				task_to_deal_with = malloc(sizeof(struct task));
 				MPI_Recv(task_to_deal_with, 1, task_type, status_p.MPI_SOURCE, INTER, inter, MPI_STATUS_IGNORE);
@@ -118,22 +116,20 @@ void thread_comm(MPI_Comm inter){
 				pwd_found = malloc(sizeof(char)*(r+1));
 				memcpy(pwd_found, task_to_deal_with->start_word, sizeof(char)*(r+1));
 				free(task_to_deal_with);
+				// Master empties list
 				while(!list_empty(&(todo_list.children))){
 					task_to_deal_with = list_pop(&todo_list.children, struct task, list);
 					free(task_to_deal_with);
 					--todo_list.num_children;    
 				}
-	// printf("Master received INTER from slave %d\n", status_p.MPI_SOURCE);
 				break;
 				case NOTHING :
+				// One process announces it has finished
 				++finishing;
-	// printf("finishing++ not\n");
 				MPI_Recv(&buffer, 1, MPI_CHAR, status_p.MPI_SOURCE, NOTHING, inter, MPI_STATUS_IGNORE);
-	// printf("Master received NOTHING from slave %d\n", status_p.MPI_SOURCE);
 				break;
 			}
 		} else if (finishing == p){
-      // printf("Finishing : %d, p : %d\n", finishing, p);
 			return;
 		}
 	}
@@ -178,10 +174,10 @@ int main(int argc, char **argv){
 
 	MPI_Init(&argc, &argv);
 
-  // Just in case
+	// Just in case
 	CHK_ERR(a == NULL || m == NULL || p < 1 || t < 1 || r < 1,"Error in args, exiting now.");
 
-  // determine if alphabet contain pwd's letters (and only once)
+	// determine if alphabet contain pwd's letters (and only once)
 	int alphabet_length = strlen(a);
 	char occ[256];
 	memset(occ, 0, 256);
@@ -198,6 +194,8 @@ int main(int argc, char **argv){
 	for (i = 0; i < pwd_length; ++i) {
 		CHK_ERR(occ[(int)m[i]] == 0,"Error: alphabet doesn't contain pwd's letters (For example: '%c').\n",m[i]);
 	}
+
+	CHK_ERR(pwd_length > r, "Error: Password too long (%d > %d).\n",pwd_length, r);
 
 	CHK_ERR((nb_letters >= 256) || (r >= MAX_CHARS) || (pwd_length >= MAX_CHARS) ,
 		"Error: out of range (> max_chars : %d).\n", MAX_CHARS );
@@ -235,7 +233,6 @@ int main(int argc, char **argv){
   powe = malloc(sizeof(unsigned long long int)*(r+1));
   for (i = 0; i <= r; ++i){
   	powe[i] = power(nb_letters - 1, i);
-    //printf("pow(%d) : %d\n", i, powe[i]);
   }
   unsigned long long int nb_possibilites = 0;
   for (i = 1; i<=r; ++i){
@@ -248,6 +245,7 @@ int main(int argc, char **argv){
   unsigned long long int nb_task = (nb_possibilites + MAX_INTER - 1) / MAX_INTER;
   printf("%lld intervals of size %d to be computed.\n", nb_task, MAX_INTER);
   unsigned long long j;
+  // Generating tasks
   for (j = 0; j < nb_task; ++j){
   	struct task * task_to_add = malloc(sizeof(struct task));
   	memcpy(task_to_add->start_word, start_word,sizeof(char)*(r+1));
@@ -255,11 +253,6 @@ int main(int argc, char **argv){
   	index += MAX_INTER;
   	list_add_tail(&todo_list.children, &task_to_add->list);
   	++todo_list.num_children;
-    /* int k; */
-    /* for (k = 0; k <= r; k++){ */
-    /*   printf("%d ", (int) start_word[k]); */
-    /* } */
-    /* printf("init ...\n"); */
   	next_word(start_word, MAX_INTER);
   }
   free(start_word);
