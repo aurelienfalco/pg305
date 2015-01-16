@@ -14,7 +14,7 @@ Le programme peut terminer de deux façons différentes :
 	\item Soit personne ne trouve le mot de passe (mot plus long que la taille maximum donnée). Le maître attend que les esclaves terminent toutes les tâches et affiche que le mot de passe n'a pas été trouvé.
 \end{itemize}
 
-Les communications doivent être recouvertes par des calculs. Ainsi, un esclave demandera du travail bien avant d'avoir terminé son intervalle de recherche courant. En pratique, le \emph{thread} de communication demande une nouvelle tâche dès que sa pile locale contient moins de tâches que son nombre de \emph{threaads} de calcul. Si jamais les tâches ne sont pas arrivées à temps, les \emph{threads} de calculs s'endorment jusqu'à ce qu'une nouvelle tâche arrive. Il sont alors réveillés par le \emph{thread} de communication. Cette attente passive est réalisée grâce à l'utilisation de sémaphores. Notons que le \emph{thread} de communication fonctionne en attente active.
+Les communications doivent être recouvertes par des calculs. Ainsi, un esclave demandera du travail bien avant d'avoir terminé son intervalle de recherche courant.
 
 \subsection{Communications} % (fold)
 \label{sub:communication}
