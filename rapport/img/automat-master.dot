@@ -35,7 +35,7 @@ edge [fontname = "times"];
             [label=<Réception d'une tâche (un mot et un nombre de mots à traiter)<BR/>envoyée par le maître<BR/><FONT color="blue">Ajout de la tâche dans la file locale</FONT>>];
 
         "Process::Normal" -> "Process::Terminaison"
-            [label=<Réception d'un message de terminaison<BR/><FONT color="blue">Vide la file de tâches et termine.</FONT>>];
+            [label=<Réception d'un message de terminaison<BR/><FONT color="blue">Vide la file de tâches. Ensuite :<BR/>*<u>Si quelconque</u> : Termine<BR/>*<u>Si root</u> : Affiche le mot de passe et termine.</FONT>>];
     }
 
 }
