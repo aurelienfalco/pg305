@@ -18,24 +18,27 @@ edge [fontname = "times"];
         "Process::Normal"
             [root="true" color="green" label="{Etat normal}"];
 
-        "Process::Demande"
-            [label="{Demande en cours}"];
-
         "Process::Terminaison"
-            [color="red" label="{Terminaison}"];
+            [label="{Terminaison}"];
+
+        "Process::Terminé"
+            [color="red" label="{Terminé}"];
 
         //
         // Transitions (Edges)
         //
 
-        "Process::Normal" -> "Process::Demande"
-            [label=<Plus de tâches dans la file locale<BR/><FONT color="blue">Envoi d'une demande de tâche au maître</FONT>>];
-
-        "Process::Demande" -> "Process::Normal"
-            [label=<Réception d'une tâche (un mot et un nombre de mots à traiter)<BR/>envoyée par le maître<BR/><FONT color="blue">Ajout de la tâche dans la file locale</FONT>>];
+        "Process::Normal" -> "Process::Normal"
+            [label=<Réception d'une demande de travail<BR/><FONT color="blue">Envoi d'une tâche au demandeur</FONT>>];
 
         "Process::Normal" -> "Process::Terminaison"
-            [label=<Réception d'un message de terminaison<BR/><FONT color="blue">Vide la file de tâches. Ensuite :<BR/>*<u>Si quelconque</u> : Termine<BR/>*<u>Si root</u> : Affiche le mot de passe et termine.</FONT>>];
+            [label=<Réception d'un message de terminaison<BR/><FONT color="blue"><BR/>*<u>Si mot de passe trouvé</u> : Envoie un message de terminaison aux slaves<BR/>*<u>Sinon</u> : Attend que les autres processus le contacte.</FONT>>];
+
+        "Process::Terminaison" -> "Process::Terminaison"
+            [label=<Réception d'une demande de travail<BR/><FONT color="blue">Envoi d'une tâche au demandeur</FONT>>];
+
+        "Process::Terminaison" -> "Process::Terminé"
+            [label=<Tous les slaves ont terminé<BR/><FONT color="blue">Affiche le mot de passe s'il a été trouvé et termine.</FONT>>];    
     }
 
 }

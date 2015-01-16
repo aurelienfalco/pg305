@@ -1,14 +1,15 @@
 NAME = rapport
+IMG = img
 
-all: $(NAME:=.tex)
-	@pdflatex $^
-	@pdflatex $^ >/dev/null
+all: $(NAME:=.tex) automate
+	@pdflatex $<
+	@pdflatex $< >/dev/null
 	@evince $(NAME:=.pdf) &
 
-automate: img/automat-slave.png img/automat-master.png
+automate: $(IMG)/automat-slave.png $(IMG)/automat-master.png
 
 %.png: %.dot
 	dot $^ -Tpng -o $@
 
 clean:
-	rm -rf *.log *.aux *.toc *.pdf *.out img/automat*.png
+	rm -rf *.log *.aux *.toc *.pdf *.out $(IMG)/automat*.png
