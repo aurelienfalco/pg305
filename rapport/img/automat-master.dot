@@ -42,6 +42,9 @@ edge [fontname = "times"];
 	    
         "Process::Terminaison" -> "Process::Terminé"
             [label=<Tous les esclaves ont terminé<BR/><FONT color="blue">Affiche le mot de passe s'il a été trouvé et termine.</FONT>>];    
+
+	 "Process::Normal" -> "Process::Terminé"
+            [label=<Tous les esclaves ont terminé<BR/><FONT color="blue">Affiche le mot de passe s'il a été trouvé et termine.</FONT>>];    
     }
 
 }
