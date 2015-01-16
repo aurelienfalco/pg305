@@ -189,8 +189,6 @@ int main(int argc, char **argv){
 		CHK_ERR(occ[(int)m[i]] == 0,"Error: alphabet doesn't contain pwd's letters (For example: '%c').\n",m[i]);
 	}
 
-	CHK_ERR(pwd_length > r, "Error: Password too long (%d > %d).\n",pwd_length, r);
-
 	CHK_ERR((nb_letters >= 256) || (r >= MAX_CHARS) || (pwd_length >= MAX_CHARS) ,
 		"Error: out of range (> max_chars : %d).\n", MAX_CHARS );
 
