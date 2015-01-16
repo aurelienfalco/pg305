@@ -35,7 +35,7 @@ edge [fontname = "times"];
             [label=<Réception d'une fin de travail : NOTHING<BR/><FONT color="blue">Incrémentation du nombre d'esclaves terminés</FONT>>];
 	    
         "Process::Normal" -> "Process::Terminaison"
-            [label=<Réception du mot de passe : INTER<BR/><FONT color="blue"><BR/>Envoi de la terminaison à l'émetteur : END</FONT><BR/>Incrémentation du nombre d'esclaves terminés>];
+            [label=<Réception du mot de passe : INTER<BR/><FONT color="blue">Envoi de la terminaison à l'émetteur : END<BR/>Incrémentation du nombre d'esclaves terminés</FONT>>];
 
         "Process::Terminaison" -> "Process::Terminaison"
             [label=<Réception d'une demande de travail : ASK<BR/><FONT color="blue">Envoi de la terminaison à l'émetteur : END<BR/>Incrémentation du nombre d'esclaves terminés</FONT>>];

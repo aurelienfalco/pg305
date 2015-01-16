@@ -8,8 +8,8 @@ n=1
 p=4
 t=5
 a=abcdefghijklmnopqrstuvwxyz
-r=6
-m=passwd
+r=7
+m=passwrd
 
 slept=2
 
@@ -24,7 +24,7 @@ ppn4='4 5 6 7 8'
 values_ppn=($ppn1 $ppn2 $ppn3 $ppn4) # $ppn5 $ppn6
 nb_iter=5
 cmpt=0
-path=./pg305-fh
+path=./pg305
 qsub_name=pg305-fh
 
 ## Création du graphe ms en fonction du nombre de processus

@@ -1,15 +1,22 @@
 \section{Choix d'implémentation} % (fold)
 \label{sec:impl}
 
-Les fonctions des deux programmes -- maître et esclave -- sont peu nombreuses : chacun des deux possède une fonction de communication, le maître possède une fonction pour répartir les mots de passes, l'esclave une pour les vérifier.
+\subsection{Organisation des programmes} % (fold)
+
+Les fonctions des deux programmes -- maître et esclave -- sont peu nombreuses : chacun des deux possède une fonction de communication, le maître possède une fonction pour répartir les mots de passes, l'esclave une pour les vérifier. Chacun d'eux analyse les paramètres donnés en fonction des directives de l'énonce (section \ref{sub:enonce}). \`A noter que le programme retourne une erreur si les paramètres ne sont pas cohérents (par exemple si une lettre du mot de passe n'est pas dans l'alphabet donné).
+
+\subsection{Parallèlisation des tests}
+
+Chaque esclave possède plusieurs \emph{threads} exécutant autant de tâches en parallèle. Ces tâches sont totalement indépendantes puisqu'elles requièrent uniquement la lecture du véritable mot de passe pour s'y comparer, la parallèlisation est donc très aisée et est réalisée via \textsf{OpenMP}. D'abord le nombre de \emph{threads} en argument est spécifié à la bibliothèque d'\textsf{OpenMP}, ensuite une section est déclarée parallèle puis, si l'identifiant du \emph{thread} est zéro alors celui-ci s'occupe des communications, sinon -- donc tous les autres identifiants -- il exécute la fonction de calcul d'une tâche.
+
 
 \subsection{Demande de tâche} % (fold)
 
-En pratique, le \emph{thread} de communication demande une nouvelle tâche dès que sa pile locale contient moins de tâches que son nombre de \emph{threaads} de calcul. Si jamais les tâches ne sont pas arrivées à temps, les \emph{threads} de calculs s'endorment jusqu'à ce qu'une nouvelle tâche arrive. Il sont alors réveillés par le \emph{thread} de communication. Cette attente passive est réalisée grâce à l'utilisation de sémaphores. Notons que le \emph{thread} de communication fonctionne en attente active.
+En pratique, le \emph{thread} de communication demande une nouvelle tâche dès que sa file locale contient moins de tâches que son nombre de \emph{threads} de calcul. Si jamais les tâches ne sont pas arrivées à temps, les \emph{threads} de calculs s'endorment jusqu'à ce qu'une nouvelle tâche arrive. Il sont alors réveillés par le \emph{thread} de communication. Cette attente passive est réalisée grâce à l'utilisation de sémaphores. Notons que le \emph{thread} de communication fonctionne en attente active.
 
 \subsection{Représentation du mot de passe}
 
-Le mot de passe peut avoir ses caractères compris dans l'ensemble de l'alphabet \textsf{ASCII}. Les chaînes de caractères en \textsf{C} sont des tableaux commençant à l'indice $0$ et terminées à droite par un élément nul. Il n'est donc pas aisé de les étendre à gauche, ce qui es la manière la plus simple de considérer l'ordre de création les mots de passe : généralement pour passer aux mots de la longueur supérieure, une lettre est ajoutée à sa gauche. Pour pallier ce problème, nous déterminons le mot miroir du mot de passe, et nous étendons au fur et à mesure du calcul les mots par la droite. C'est ainsi le mot de passe miroir qui est trouvé, puis renversé lors de l'affichage de la solution.
+Le mot de passe peut avoir ses caractères compris dans l'ensemble de l'alphabet \textsf{ASCII}. Les chaînes de caractères en \textsf{C} sont des tableaux commençant à l'indice $0$ et terminées à droite par un élément nul. Il n'est donc pas aisé de les étendre à gauche, ce qui est la manière la plus simple de considérer l'ordre de création des mots de passe : généralement pour passer aux mots de la longueur supérieure, une lettre est ajoutée à sa gauche. Pour pallier ce problème, nous déterminons le mot miroir du mot de passe, et nous étendons au fur et à mesure du calcul les mots par la droite. C'est ainsi le mot de passe miroir qui est trouvé, puis renversé lors de l'affichage de la solution.
 
 Par ailleurs les considérations mathématiques pour passer d'un mot à son successeur -- les tâches n'étant que des intervalles de mots à tester : le premier mot puis une longueur donnée -- rendent compliquées l'utilisation directes des caractères de type \texttt{char} du mot de passe en entrée. Il est beaucoup plus simple de considérer que les lettres vont de $1$ au nombre de lettres de l'alphabet. Le zéro est quand à lui toujours réservé à la fin du mot.
 
@@ -22,9 +29,11 @@ L'ordre utilisé pour organiser la liste des mots à tester est ici lexicographi
 
 Notons enfin que le calcul de tous les intervalles est effectué séquentiellement par le maître, avant le commencement des communications. Une voie possible d'amélioration est de commencer les communications dès le début afin de limiter la latence que cela induit. Toutefois le temps de création de ces intervalles reste bien inférieur au temps de calcul, et l'économie ne se ressentirait pas beaucoup.
 
-\subsection{Accès à la pile de tâches}
+\subsection{File de tâches}
 
-Chaque esclave possède un certain nombre de tâches de réserver pour éviter la famine d'un de ses \emph{threads}, celles-ci sont stockées dans une pile -- ou plutôt liste doublement chaînée -- de l'implémentation \textsf{CCAN}. La pile des tâches est partagée entre les différents \emph{threads} de travail et celui de communication ; il convient donc de protéger l'accès. Pour cela les sections critiques d'accès à la pile sont encadrées par un \emph{pragma OpenMP} empêchant tout problème du à la concurrence -- voir l'exemple \ref{critical}. Ainsi, chaque \emph{thread} peut retirer une tâche de la file et l'exécuter sans crainte de dédoubler un travail, puisqu'il est forcément seul quand il arrive dans cette section. 
+Chaque esclave possède un certain nombre de tâches de réserver pour éviter la famine d'un de ses \emph{threads}, celles-ci sont stockées dans une file -- ou plutôt liste doublement chaînée -- de l'implémentation \textsf{CCAN}. Nous utilisons une file plutôt qu'une pile car cela nous permet de traiter les mots les plus courts d'abord, ce qui paraît logique d'un point de vue utilisation. En effet, plus un mot de passe est court, plus vite il sera trouvé. 
+
+La file des tâches est partagée entre les différents \emph{threads} de travail et celui de communication ; il convient donc d'en protéger l'accès. Pour cela les sections critiques d'accès à la file sont encadrées par un \emph{pragma OpenMP} empêchant tout problème du à la concurrence -- voir l'exemple \ref{critical}. Ainsi, chaque \emph{thread} peut retirer une tâche de la file et l'exécuter sans crainte de dédoubler un travail, puisqu'il est forcément seul quand il arrive dans cette section. 
 
 \begin{figure}
 \begin{lstlisting}
@@ -38,7 +47,3 @@ Chaque esclave possède un certain nombre de tâches de réserver pour éviter l
 \caption{Section critique qui permet de récupérer une tâche}
 \label{critical}
 \end{figure}
-
-\subsection{Parallèlisation des tests}
-
-Chaque esclave possède plusieurs \emph{threads} exécutant autant de tâches en parallèle. Ces tâches sont totalement indépendantes puisqu'elles requièrent uniquement la lecture du véritable mot de passe pour s'y comparer, la parallèlisation est donc très aisée et est réalisée via \textsf{OpenMP}. D'abord le nombre de \emph{threads} en argument est spécifié à la bibliothèque d'\textsf{OpenMP}, ensuite une section est déclarée parallèle puis, si l'identifiant du \emph{thread} est zéro alors celui-ci s'occupe des communications, sinon -- donc tous les autres identifiants -- il exécute la fonction de calcul d'une tâche.
