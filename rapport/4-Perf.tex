@@ -10,16 +10,18 @@ A l'exécution l'utilisateur peut passer certains paramètres au programme. Ceux
 	\item $c$ : le chemin de l'exécutable \og slave\fg .
 \end{itemize}
 
+Il est ainsi possible de changer facilement les paramètres du programme entre deux exécutions, ce qui nous a permis de le tester pour un certain nombre de cas. \`A noter que le programme retourne une erreur si les paramètres ne sont pas cohérents (par exemple si $r$ est plus petit que la longueur du mot de passe).
+
 
 \section{Performances} % (fold)
 \label{sec:perf}
 
-Une série de tests est lancée sur différentes tailles de mots
+Pour les performances, nous avons créé un script qui nous permet de lancer des jobs sur la machine Plafrim de l'Inria. Le graphe de la figure \ref{fig:graph_procs} montre les résultats obtenus lorsque nous faisions varier le nombre de processus intervenant dans le calcul. Cependant, alors que nous voulions effectuer des tests supplémentaires afin de compléter nos observations
 
 \begin{figure}[h!]
 \centering
-% \includegraphics[width=0.8\textwidth]{stats.png}
-\caption{Résultats obtenus}
-\label{fig:stats}
+\includegraphics[width=0.8\textwidth]{1_graph_procs}
+\caption{Résultats obtenus sur Plafrim}
+\label{fig:graph_procs}
 \end{figure}
 

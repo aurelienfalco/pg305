@@ -24,8 +24,8 @@ ppn4='4 5 6 7 8'
 values_ppn=($ppn1 $ppn2 $ppn3 $ppn4) # $ppn5 $ppn6
 nb_iter=5
 cmpt=0
-folder=pg305-fh
-path=./$folder
+path=./pg305-fh
+qsub_name=pg305-fh
 
 ## Création du graphe ms en fonction du nombre de processus
 
@@ -38,21 +38,21 @@ do
     for j in $(seq 1 ${nb_nodes[$(($i - 1))]})
     do
 	echo "#PBS -l nodes=$i:ppn=${values_ppn[$cmpt]}" > tmp.pbs
-	echo "module load compiler/gcc mpi/openmpi/current" >> tmp.pbs
+	echo "module load compiler/intel/stable mpi/openmpi/1.6.5" >> tmp.pbs
 	rm -f $nom_fichier.out
 	for k in $(seq 1 $nb_iter)
 	do
 	    echo "mpiexec -np $n $path/master -p $(($i * ${values_ppn[$cmpt]})) -t $t -a $a -r $r -m $m -c $path/slave" >> tmp.pbs
 	done
-	rm -f ${folder}.*
-	qsub -l walltime=00:10:00 -N ${folder} tmp.pbs
-	cat ${folder}.* 
+	rm -f $qsub_name.*
+	qsub -l walltime=00:10:00 -N $qsub_name tmp.pbs
+	cat $qsub_name* 
 	while [ $? -ne 0 ]
 	do
 	    sleep $slept
-	    cat ${folder}*
+	    cat $qsub_name*
 	done
-	cat ${folder}.* | grep 'Time' | grep -Eo '[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?' >> $nom_fichier.out
+	cat $qsub_name* | grep 'Time' | grep -Eo '[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?' >> $nom_fichier.out
 	cat $nom_fichier.out | tr '\n' '\t' > $nom_fichier.bis.out 
 	value=$(head -n 1 $nom_fichier.bis.out)    
 	echo -e "$(($i * ${values_ppn[$cmpt]}))\t$value" >> tmp
@@ -61,13 +61,7 @@ do
 done
 sort -k1,1 -n tmp > $nom_fichier.dat
 gnuplot <<EOF
-#load 'dataGraph.gp'
-set terminal png
-set title "Temps d'execution en fonction du nombre de processus"
-set ylabel "Temps d'execution (s)"	    
-set xlabel "Nombre de processus (Plafrim)"
-set output 'graph_procs.png'
-plot 'graph_procs.dat' using 1:((\$2+\$3+\$4+\$5+\$6)/5.0) with lines title 'Mot de passe'
+load 'dataGraph.gp'
 EOF
 echo -e "--->Graphic generated"
 
@@ -75,4 +69,3 @@ echo -e "--->Graphic generated"
 rm -f tmp
 rm -f tmp.pbs
 rm -f *.out
-rm -f honorat*
