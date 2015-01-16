@@ -1,22 +1,7 @@
-\section{Exécution \& tests} % (fold)
-\label{sec:execution}
-
-A l'exécution l'utilisateur peut passer certains paramètres au programme. Ceux-ci sont les suivants :
-\begin{itemize}
-	\item $p$ : nombre de processus total. $p-1$ esclaves seront créés ;
-	\item $t$ : nombre de threads de travail. Au total, $t+1$ threads sont créés, en comptant le thread de communication ;
-	\item $r$ : longueur maximum des mots à vérifier ;
-	\item $m$ : le mot de passe.
-	\item $c$ : le chemin de l'exécutable \og slave\fg .
-\end{itemize}
-
-Il est ainsi possible de changer facilement les paramètres du programme entre deux exécutions, ce qui nous a permis de le tester pour un certain nombre de cas. \`A noter que le programme retourne une erreur si les paramètres ne sont pas cohérents (par exemple si une lettre du mot de passe n'est pas dans l'alphabet donné).
-
-
 \section{Performances} % (fold)
 \label{sec:perf}
 
-Pour les performances, nous avons créé un script qui nous permet de lancer des jobs sur la machine Plafrim de l'Inria. Le graphe de la figure \ref{fig:graph_procs} montre les résultats obtenus lorsque nous faisions varier le nombre de processus intervenant dans le calcul. Cependant, alors que nous voulions effectuer des tests supplémentaires afin de compléter nos observations, il s'est avéré que la machine Plafrim ne nous permettait plus de soumettre des jobs. 
+Pour les performances, nous avons créé un script qui nous permet de lancer des jobs sur la machine Plafrim de l'Inria et de tracer le graphique associé directement. Par défaut le mot de passe à trouver est \emph{passwd}, avec comme alphabet les $26$ lettres minuscules. Le programme est lancé sur un nombre grandissant de processus -- de $2$ à $32$ mais pas forcément par incrément de $1$ -- et une moyenne est faite sur $5$ exécutions. Un exemple de sortie est le graphe de la figure \ref{fig:graph_procs} sur lequel nous pouvons constater une très forte accélération à partir de $3$  et $4$ processus. Le fait que la courbe reste constante par la suite est du au surcoût de communication qu'engendre le programme avec trop de processus. Nous avons essayé de relancer la création du graphe pour le mots de passe $passwrd$ mais la première itération avec un seul esclave prend trop de temps.
 
 \begin{figure}[h!]
 \centering
